@@ -16,8 +16,12 @@ struct PlaceDetailView: View {
         Form {
             Section("基本信息") {
                 LabeledContent("名称") {
-                    Text(place.name)
-                        .multilineTextAlignment(.trailing)
+                    TextField("地点名称", text: Binding(
+                        get: { place.name },
+                        set: { place.name = $0; save() }
+                    ))
+                    .textFieldStyle(.roundedBorder)
+                    .multilineTextAlignment(.trailing)
                 }
                 Picker("分类", selection: Binding(
                     get: { place.category },

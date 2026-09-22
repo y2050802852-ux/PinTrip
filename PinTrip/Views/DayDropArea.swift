@@ -27,6 +27,9 @@ struct DayDropArea: View {
 
     @Environment(\.modelContext) private var context
 
+    /// Place being renamed via the context menu.
+    @State private var renamingPlace: Place?
+
     /// Row height is fixed explicitly so `insertionIndex` can map a drop's y
     /// coordinate to a slot; keep the two in sync.
     private static let rowHeight: CGFloat = 44
@@ -84,6 +87,9 @@ struct DayDropArea: View {
                 dropTargetIndex = nil
             }
         }
+        .sheet(item: $renamingPlace) { place in
+            RenameSheet(place: place)
+        }
     }
 
     private func row(for place: Place) -> some View {
@@ -110,6 +116,7 @@ struct DayDropArea: View {
             .draggable(PlaceDragPayload(placeID: place.id))
             .contextMenu {
                 Button("复制地点") { onDuplicatePlace(place) }
+                Button("重命名…") { renamingPlace = place }
                 Divider()
                 Button("从本计划移除", role: .destructive) {
                     PlanStore(context: context).remove(place, from: plan)
