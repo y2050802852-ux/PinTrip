@@ -10,6 +10,9 @@ struct ContentView: View {
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var undoController = UndoController()
 
+    /// Coordinate the map should fly to (double-click on a place row).
+    @State private var focusRequest: MapCoordinate?
+
     /// Candidate place awaiting confirmation, shared by the list and the map.
     @State private var preview: PlacePreview?
     /// Day the preview card will add to.
@@ -37,7 +40,8 @@ struct ContentView: View {
                 selectedPlaceID: $selectedPlaceID,
                 undoController: undoController,
                 focusedDay: $focusedDay,
-                preview: $preview
+                preview: $preview,
+                focusRequest: $focusRequest
             )
         } detail: {
             MapCanvasView(
@@ -47,17 +51,20 @@ struct ContentView: View {
                 focusedDay: $focusedDay,
                 preview: $preview,
                 onCommitPreview: commitPreview,
-                addTargetDay: $addTargetDay
+                addTargetDay: $addTargetDay,
+                focusRequest: $focusRequest
             )
             .inspector(isPresented: Binding(
                 get: { selectedPlace != nil },
                 set: { if !$0 { selectedPlaceID = nil } }
             )) {
                 if let plan = selectedPlan, let place = selectedPlace {
-                    PlaceDetailView(place: place) {
+                    PlaceDetailView(place: place, onRemove: {
                         PlanStore(context: modelContext).remove(place, from: plan)
                         selectedPlaceID = nil
-                    }
+                    }, onDuplicate: { copy in
+                        selectedPlaceID = copy.id
+                    })
                     .inspectorColumnWidth(min: 280, ideal: 320)
                 }
             }

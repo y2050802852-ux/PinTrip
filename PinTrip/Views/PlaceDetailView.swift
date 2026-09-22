@@ -7,6 +7,8 @@ import SwiftUI
 struct PlaceDetailView: View {
     let place: Place
     let onRemove: () -> Void
+    /// Called after the duplicate is created; the caller selects it.
+    let onDuplicate: (Place) -> Void
 
     @Environment(\.modelContext) private var context
 
@@ -72,11 +74,22 @@ struct PlaceDetailView: View {
             }
 
             Section {
+                Button {
+                    onDuplicate(duplicateInPlace())
+                } label: {
+                    Label("复制地点", systemImage: "doc.on.doc")
+                }
                 Button("从本计划移除", role: .destructive, action: onRemove)
             }
         }
         .formStyle(.grouped)
         .frame(minWidth: 260)
+    }
+
+    /// Duplicates this place in its first plan (the one being viewed).
+    private func duplicateInPlace() -> Place {
+        let plan = place.plans.first!
+        return PlanStore(context: context).duplicate(place, in: plan)
     }
 
     private func save() {

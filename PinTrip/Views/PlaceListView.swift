@@ -23,6 +23,9 @@ struct PlaceListView: View {
     @State private var dropTargetDay: Int?
     @State private var dropTargetIndex: Int?
 
+    /// Coordinate the map should fly to; consumed by ContentView/MapCanvasView.
+    @Binding var focusRequest: MapCoordinate?
+
     private var places: [Place] {
         plan?.orderedPlaces ?? []
     }
@@ -100,6 +103,12 @@ struct PlaceListView: View {
                             dropTargetIndex: $dropTargetIndex,
                             handleDrop: { payloads, index in
                                 handleDrop(payloads, day: day, index: index)
+                            },
+                            onFocusPlace: { place in
+                                focusRequest = MapCoordinate(place.coordinate)
+                            },
+                            onDuplicatePlace: { place in
+                                _ = PlanStore(context: context).duplicate(place, in: plan)
                             }
                         )
                     } header: {

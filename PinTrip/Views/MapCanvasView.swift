@@ -17,6 +17,9 @@ struct MapCanvasView: View {
     /// Day the add button targets, owned by ContentView so the list and card agree.
     @Binding var addTargetDay: Int
 
+    /// When set, the map flies to this coordinate (double-click on a list row).
+    @Binding var focusRequest: MapCoordinate?
+
     @Environment(\.modelContext) private var context
 
     private var places: [Place] {
@@ -106,6 +109,15 @@ struct MapCanvasView: View {
             cameraPosition = .camera(
                 MapCamera(centerCoordinate: coordinate, distance: 4_000)
             )
+        }
+        // Double-clicking a place row in the list flies the map to it, closer
+        // than a preview since the place is already confirmed.
+        .onChange(of: focusRequest) { _, request in
+            guard let request else { return }
+            cameraPosition = .camera(
+                MapCamera(centerCoordinate: request.clCoordinate, distance: 1_000)
+            )
+            focusRequest = nil
         }
     }
 }

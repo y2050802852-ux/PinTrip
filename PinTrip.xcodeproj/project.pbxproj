@@ -27,6 +27,7 @@
 		A10021 /* DateRangeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10025 /* DateRangeSheet.swift */; };
 		A10022 /* PlaceDragPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10026 /* PlaceDragPayload.swift */; };
 		A10023 /* DayDropArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10027 /* DayDropArea.swift */; };
+		A10024 /* MapCoordinate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10028 /* MapCoordinate.swift */; };
 		A10020 /* PreviewCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10024 /* PreviewCard.swift */; };
 		A10019 /* PlacePreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10023 /* PlacePreview.swift */; };
 /* End PBXBuildFile section */
@@ -48,6 +49,7 @@
 		B10014 /* UndoController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoController.swift; sourceTree = "<group>"; };
 		B10015 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B10016 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B10028 /* MapCoordinate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapCoordinate.swift; sourceTree = "<group>"; };
 		B10027 /* DayDropArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayDropArea.swift; sourceTree = "<group>"; };
 		B10026 /* PlaceDragPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDragPayload.swift; sourceTree = "<group>"; };
 		B10023 /* PlacePreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacePreview.swift; sourceTree = "<group>"; };
@@ -100,6 +102,7 @@
 				B10011 /* DeletionSnapshot.swift */,
 				B10023 /* PlacePreview.swift */,
 				B10026 /* PlaceDragPayload.swift */,
+				B10028 /* MapCoordinate.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -231,6 +234,7 @@
 				A10021 /* DateRangeSheet.swift in Sources */,
 				A10022 /* PlaceDragPayload.swift in Sources */,
 				A10023 /* DayDropArea.swift in Sources */,
+				A10024 /* MapCoordinate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

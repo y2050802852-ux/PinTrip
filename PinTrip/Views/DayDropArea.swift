@@ -19,6 +19,14 @@ struct DayDropArea: View {
     @Binding var dropTargetIndex: Int?
     let handleDrop: ([PlaceDragPayload], Int) -> Bool
 
+    /// Tells the app to fly the map to this place (double-click).
+    let onFocusPlace: (Place) -> Void
+
+    /// Duplicates a place within the plan.
+    let onDuplicatePlace: (Place) -> Void
+
+    @Environment(\.modelContext) private var context
+
     /// Row height is fixed explicitly so `insertionIndex` can map a drop's y
     /// coordinate to a slot; keep the two in sync.
     private static let rowHeight: CGFloat = 44
@@ -41,9 +49,7 @@ struct DayDropArea: View {
             } else {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, place in
                     insertIndicator(index: index)
-                    PlaceRow(plan: plan, place: place)
-                        .tag(place.id as PersistentIdentifier?)
-                        .draggable(PlaceDragPayload(placeID: place.id))
+                    row(for: place)
                         .frame(height: Self.rowHeight)
                 }
                 insertIndicator(index: items.count)
@@ -78,6 +84,37 @@ struct DayDropArea: View {
                 dropTargetIndex = nil
             }
         }
+    }
+
+    private func row(for place: Place) -> some View {
+        let isSelected = selectedPlaceID == place.id
+        return PlaceRow(plan: plan, place: place)
+            // The outer List row is the whole day, so List's native selection
+            // highlight never applies; draw our own.
+            .background(
+                HStack(spacing: 0) {
+                    Rectangle()
+                        .fill(isSelected ? Color.accentColor : Color.clear)
+                        .frame(width: 3)
+                    Color(isSelected ? Color.accentColor.opacity(0.10) : Color.clear)
+                }
+            )
+            .contentShape(Rectangle())
+            .onTapGesture {
+                selectedPlaceID = place.id
+            }
+            .onTapGesture(count: 2) {
+                selectedPlaceID = place.id
+                onFocusPlace(place)
+            }
+            .draggable(PlaceDragPayload(placeID: place.id))
+            .contextMenu {
+                Button("复制地点") { onDuplicatePlace(place) }
+                Divider()
+                Button("从本计划移除", role: .destructive) {
+                    PlanStore(context: context).remove(place, from: plan)
+                }
+            }
     }
 
     @ViewBuilder

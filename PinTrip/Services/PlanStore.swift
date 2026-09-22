@@ -113,4 +113,43 @@ struct PlanStore {
         }
         try? context.save()
     }
+
+    /// Duplicates `place` within `plan`: a new record right after the
+    /// original (same day), named with a "(副本)" suffix.
+    ///
+    /// The copy is independent — editing its notes/rating/day never touches
+    /// the original — which is the point over referencing the same record
+    /// twice. It joins only the given plan.
+    @discardableResult
+    func duplicate(_ place: Place, in plan: Plan) -> Place {
+        let copy = Place(
+            name: place.name + "（副本）",
+            coordinate: place.coordinate,
+            category: place.category
+        )
+        copy.notes = place.notes
+        copy.rating = place.rating
+        copy.visited = false          // a new visit, not the original's history
+        copy.linkURL = place.linkURL
+        copy.photoPath = place.photoPath
+        copy.day = place.day
+
+        // Slot directly after the original within its day.
+        let daySiblings = plan.places
+            .filter { $0.day == place.day }
+            .sorted { $0.sortOrder < $1.sortOrder }
+        let originalIndex = daySiblings.firstIndex { $0.id == place.id }
+            ?? daySiblings.count
+        copy.sortOrder = originalIndex + 1
+
+        context.insert(copy)
+        add(copy, to: plan)
+
+        // Shift siblings after the original to keep order contiguous.
+        for (offset, sibling) in daySiblings.enumerated() where offset > originalIndex {
+            sibling.sortOrder += 1
+        }
+        try? context.save()
+        return copy
+    }
 }
