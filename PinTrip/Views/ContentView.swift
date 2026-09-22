@@ -1,3 +1,4 @@
+import CoreLocation
 import MapKit
 import SwiftData
 import SwiftUI
@@ -8,6 +9,14 @@ struct ContentView: View {
     @State private var selectedPlaceID: PersistentIdentifier?
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var undoController = UndoController()
+
+    /// Candidate place awaiting confirmation, shared by the list and the map.
+    @State private var preview: PlacePreview?
+    /// Day the preview card will add to.
+    @State private var addTargetDay = 1
+    /// When set, the middle list and the map show only this day.
+    @State private var focusedDay: Int?
+
     @Environment(\.modelContext) private var modelContext
 
     private var selectedPlan: Plan? {
@@ -15,9 +24,7 @@ struct ContentView: View {
     }
 
     private var selectedPlace: Place? {
-        guard let plan = selectedPlan,
-              let placeID = selectedPlaceID
-        else { return nil }
+        guard let plan = selectedPlan, let placeID = selectedPlaceID else { return nil }
         return plan.places.first { $0.id == placeID }
     }
 
@@ -28,13 +35,19 @@ struct ContentView: View {
             PlaceListView(
                 plan: selectedPlan,
                 selectedPlaceID: $selectedPlaceID,
-                undoController: undoController
+                undoController: undoController,
+                focusedDay: $focusedDay,
+                preview: $preview
             )
         } detail: {
             MapCanvasView(
                 plan: selectedPlan,
                 selectedPlaceID: $selectedPlaceID,
-                cameraPosition: $cameraPosition
+                cameraPosition: $cameraPosition,
+                focusedDay: $focusedDay,
+                preview: $preview,
+                onCommitPreview: commitPreview,
+                addTargetDay: $addTargetDay
             )
             .inspector(isPresented: Binding(
                 get: { selectedPlace != nil },
@@ -52,6 +65,9 @@ struct ContentView: View {
         .navigationTitle(selectedPlan?.name ?? "PinTrip")
         .onChange(of: selectedPlanID) { _, _ in
             selectedPlaceID = nil
+            preview = nil
+            focusedDay = nil
+            addTargetDay = 1
             retargetCamera()
         }
         .onAppear(perform: retargetCamera)
@@ -70,6 +86,21 @@ struct ContentView: View {
             let deletion = PlanStore(context: modelContext).delete(plan)
             undoController.offerUndo(deletion)
         }
+        // Selecting a place makes its day the default target for new additions.
+        .onChange(of: selectedPlace?.day) { _, newDay in
+            if let newDay { addTargetDay = newDay }
+        }
+    }
+
+    private func commitPreview(name: String, category: PlaceCategory, day: Int) {
+        guard let plan = selectedPlan else { return }
+        let place = Place(name: name, coordinate: preview?.coordinate ?? CLLocationCoordinate2D(), category: category)
+        place.day = plan.clampedDay(day)
+        place.sortOrder = plan.places.filter { $0.day == place.day }.count
+        modelContext.insert(place)
+        PlanStore(context: modelContext).add(place, to: plan)
+        selectedPlaceID = place.id
+        preview = nil
     }
 
     private func retargetCamera() {

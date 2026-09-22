@@ -47,6 +47,8 @@ struct PlanStore {
         plan.destinationLatitude = deletion.destinationLatitude
         plan.destinationLongitude = deletion.destinationLongitude
         plan.searchRadius = deletion.searchRadius
+        plan.startDate = deletion.startDate
+        plan.endDate = deletion.endDate
         context.insert(plan)
 
         // Places shared with other plans survived deletion; re-link those
@@ -74,6 +76,23 @@ struct PlanStore {
 
         try? context.save()
         return plan
+    }
+
+    /// Applies a new itinerary window. Places scheduled on days that no longer
+    /// exist are moved to the new last day rather than being lost.
+    /// Returns how many places were moved.
+    func setDateRange(_ plan: Plan, start: Date?, end: Date?) -> Int {
+        plan.startDate = start
+        plan.endDate = end
+
+        var moved = 0
+        let lastDay = plan.dayCount
+        for place in plan.places where place.day > lastDay {
+            place.day = lastDay
+            moved += 1
+        }
+        try? context.save()
+        return moved
     }
 
     func add(_ place: Place, to plan: Plan) {

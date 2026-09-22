@@ -7,6 +7,12 @@ struct PlaceListView: View {
     @Binding var selectedPlaceID: PersistentIdentifier?
     let undoController: UndoController
 
+    /// Day whose places are shown exclusively; nil shows the whole trip.
+    @Binding var focusedDay: Int?
+
+    /// Set when the user picks a search suggestion or right-clicks the map.
+    @Binding var preview: PlacePreview?
+
     @Environment(\.modelContext) private var context
     @State private var searchService = PlaceSearchService()
     @State private var query = ""
@@ -17,19 +23,34 @@ struct PlaceListView: View {
         plan?.orderedPlaces ?? []
     }
 
+    private var placesByDay: [(day: Int, places: [Place])] {
+        guard let plan else { return [] }
+        let days = focusedDay.map { [$0] } ?? plan.dayNumbers
+        return days.compactMap { day in
+            let items = places.filter { $0.day == day }
+            return items.isEmpty ? nil : (day: day, places: items)
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             searchField
             Divider()
             content
         }
-        .frame(minWidth: 280)
+        .frame(minWidth: 300)
         .onChange(of: plan?.id) { _, _ in
             searchService.clear()
             query = ""
-            updateSearchRegion()
+            preview = nil
+            focusedDay = nil
+            updateSearchBias()
         }
-        .onAppear(perform: updateSearchRegion)
+        .onAppear(perform: updateSearchBias)
+        // Search text is cleared once the previewed place is committed.
+        .onChange(of: preview) { _, newValue in
+            if newValue == nil { clearAfterCommit() }
+        }
     }
 
     @ViewBuilder
@@ -43,12 +64,25 @@ struct PlaceListView: View {
                 }
             } else {
                 List(selection: $selectedPlaceID) {
-                    ForEach(places) { place in
-                        PlaceRow(plan: plan, place: place)
-                            .tag(place.id as PersistentIdentifier?)
-                    }
-                    .onMove { from, to in
-                        reorder(plan: plan, from: from, to: to)
+                    ForEach(placesByDay, id: \.day) { section in
+                        Section {
+                            ForEach(section.places) { place in
+                                PlaceRow(plan: plan, place: place)
+                                    .tag(place.id as PersistentIdentifier?)
+                            }
+                            .onMove { from, to in
+                                reorder(day: section.day, from: from, to: to)
+                            }
+                        } header: {
+                            DayHeader(
+                                plan: plan,
+                                day: section.day,
+                                count: section.places.count,
+                                isFocused: focusedDay == section.day
+                            ) {
+                                focusedDay = (focusedDay == section.day) ? nil : section.day
+                            }
+                        }
                     }
                 }
                 .listStyle(.inset)
@@ -67,7 +101,7 @@ struct PlaceListView: View {
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
-                TextField("搜索地点加入计划", text: $query)
+                TextField("搜索地点", text: $query)
                     .textFieldStyle(.plain)
                     .onChange(of: query) { _, newValue in
                         searchService.updateQuery(newValue)
@@ -103,7 +137,7 @@ struct PlaceListView: View {
         VStack(spacing: 0) {
             ForEach(searchService.suggestions.prefix(6)) { suggestion in
                 Button {
-                    Task { await resolve(suggestion) }
+                    Task { await previewSuggestion(suggestion) }
                 } label: {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(suggestion.title).font(.body)
@@ -126,27 +160,29 @@ struct PlaceListView: View {
                 Divider()
             }
         }
-        .overlay {
-            if isResolving {
-                ProgressView().controlSize(.small)
-            }
-        }
+        .overlay { if isResolving { ProgressView().controlSize(.small) } }
     }
 
     // MARK: - Actions
 
-    private func updateSearchRegion() {
+    private func updateSearchBias() {
         searchService.biasCity = plan?.destinationName
     }
 
-    private func resolve(_ suggestion: PlaceSuggestion) async {
+    /// Selecting a suggestion only previews it on the map; nothing is saved
+    /// until the user confirms from the preview card.
+    private func previewSuggestion(_ suggestion: PlaceSuggestion) async {
         isResolving = true
         defer { isResolving = false }
         do {
             let coordinate = try await searchService.resolve(suggestion)
-            addPlace(name: suggestion.title, coordinate: coordinate, category: .sight)
-            query = ""
-            searchService.clear()
+            preview = PlacePreview(
+                name: suggestion.title,
+                subtitle: suggestion.subtitle,
+                coordinate: coordinate,
+                source: .search
+            )
+            searchError = nil
         } catch {
             searchError = error.localizedDescription
         }
@@ -162,38 +198,61 @@ struct PlaceListView: View {
                 searchError = "未找到该地点"
                 return
             }
-            addPlace(
+            preview = PlacePreview(
                 name: item.name ?? query,
+                subtitle: item.placemark.title ?? "",
                 coordinate: item.placemark.coordinate,
-                category: .sight
+                source: .search
             )
-            query = ""
-            searchService.clear()
+            searchError = nil
         } catch {
             searchError = error.localizedDescription
         }
     }
 
-    private func addPlace(
-        name: String,
-        coordinate: CLLocationCoordinate2D,
-        category: PlaceCategory
-    ) {
-        guard let plan else { return }
-        let place = Place(name: name, coordinate: coordinate, category: category)
-        place.sortOrder = plan.places.count
-        context.insert(place)
-        PlanStore(context: context).add(place, to: plan)
-        selectedPlaceID = place.id
-        searchError = nil
+    /// Clears the search field after a preview has been committed elsewhere.
+    private func clearAfterCommit() {
+        query = ""
+        searchService.clear()
     }
 
-    private func reorder(plan: Plan, from source: IndexSet, to destination: Int) {
-        var ordered = plan.orderedPlaces
+    private func reorder(day: Int, from source: IndexSet, to destination: Int) {
+        var ordered = places.filter { $0.day == day }
         ordered.move(fromOffsets: source, toOffset: destination)
         for (index, place) in ordered.enumerated() {
             place.sortOrder = index
         }
         try? context.save()
+    }
+}
+
+private struct DayHeader: View {
+    let plan: Plan
+    let day: Int
+    let count: Int
+    let isFocused: Bool
+    let toggle: () -> Void
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text("第 \(day) 天")
+                .font(.headline)
+            if let date = plan.date(forDayIndex: day - 1) {
+                Text(date, style: .date)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Text("· \(count) 个")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+            Spacer()
+            Button(isFocused ? "显示全部" : "只看这天") {
+                toggle()
+            }
+            .buttonStyle(.borderless)
+            .font(.caption)
+            .foregroundStyle(isFocused ? Color.accentColor : .secondary)
+        }
+        .padding(.vertical, 2)
     }
 }

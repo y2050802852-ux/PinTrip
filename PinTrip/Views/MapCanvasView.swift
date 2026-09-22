@@ -7,12 +7,23 @@ struct MapCanvasView: View {
     @Binding var selectedPlaceID: PersistentIdentifier?
     @Binding var cameraPosition: MapCameraPosition
 
+    /// Restricts the map to a single day when set; nil shows the whole plan.
+    @Binding var focusedDay: Int?
+    @Binding var preview: PlacePreview?
+
+    /// Called after the user confirms adding the previewed place.
+    let onCommitPreview: (String, PlaceCategory, Int) -> Void
+
+    /// Day the add button targets, owned by ContentView so the list and card agree.
+    @Binding var addTargetDay: Int
+
     @Environment(\.modelContext) private var context
-    @State private var dropCoordinate: CLLocationCoordinate2D?
-    @State private var showingDropSheet = false
 
     private var places: [Place] {
-        plan?.orderedPlaces ?? []
+        guard let plan else { return [] }
+        let visible = focusedDay.map { day in plan.orderedPlaces.filter { $0.day == day } }
+            ?? plan.orderedPlaces
+        return visible
     }
 
     var body: some View {
@@ -23,6 +34,13 @@ struct MapCanvasView: View {
                         .tint(place.category.tint)
                         .tag(place.id as PersistentIdentifier?)
                 }
+
+                // Preview marker: distinct color and lower opacity so it reads
+                // as "not yet in the itinerary".
+                if let preview {
+                    Marker(preview.needsName ? "新位置" : preview.name, coordinate: preview.coordinate)
+                        .tint(Color.accentColor.opacity(0.55))
+                }
             }
             .mapStyle(.standard)
             .mapControls {
@@ -32,18 +50,47 @@ struct MapCanvasView: View {
             .overlay {
                 RightClickCapture { point in
                     guard let coordinate = proxy.convert(point, from: .local) else { return }
-                    dropCoordinate = coordinate
-                    showingDropSheet = true
+                    preview = PlacePreview(
+                        name: "",
+                        subtitle: "地图落点",
+                        coordinate: coordinate,
+                        source: .manualDrop
+                    )
                 }
             }
         }
-        .sheet(isPresented: $showingDropSheet) {
-            DropPinSheet(coordinate: dropCoordinate) { name, category in
-                guard let coordinate = dropCoordinate else { return }
-                addPlace(name: name, coordinate: coordinate, category: category)
+        .overlay(alignment: .topTrailing) {
+            VStack(alignment: .trailing, spacing: 10) {
+                if let preview, let plan {
+                    PreviewCard(
+                        preview: preview,
+                        dayOptions: plan.dayNumbers,
+                        dateForDay: { plan.date(forDayIndex: $0 - 1) },
+                        selectedDay: plan.clampedDay(addTargetDay),
+                        onSelectDay: { addTargetDay = $0 },
+                        onAdd: { name, category in
+                            onCommitPreview(name, category, plan.clampedDay(addTargetDay))
+                        },
+                        onCancel: { self.preview = nil }
+                    )
+                    .padding(14)
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                }
+
+                if focusedDay != nil {
+                    Button {
+                        focusedDay = nil
+                    } label: {
+                        Label("显示全部地点", systemImage: "arrow.up.left.and.arrow.down.right")
+                            .font(.callout)
+                    }
+                    .buttonStyle(.bordered)
+                    .padding(.trailing, 14)
+                    .padding(.bottom, 4)
+                }
             }
         }
-        .overlay(alignment: .topTrailing) {
+        .overlay(alignment: .topLeading) {
             if let plan, plan.destinationName == nil {
                 Text("未设置目的地城市 · 搜索结果不受地域限制")
                     .font(.caption)
@@ -52,18 +99,13 @@ struct MapCanvasView: View {
                     .padding()
             }
         }
-    }
-
-    private func addPlace(
-        name: String,
-        coordinate: CLLocationCoordinate2D,
-        category: PlaceCategory
-    ) {
-        guard let plan else { return }
-        let place = Place(name: name, coordinate: coordinate, category: category)
-        place.sortOrder = plan.places.count
-        context.insert(place)
-        PlanStore(context: context).add(place, to: plan)
-        selectedPlaceID = place.id
+        .animation(.easeOut(duration: 0.18), value: preview?.id)
+        // Focus the map on the previewed coordinate as soon as it appears.
+        .onChange(of: preview?.id) { _, _ in
+            guard let coordinate = preview?.coordinate else { return }
+            cameraPosition = .camera(
+                MapCamera(centerCoordinate: coordinate, distance: 4_000)
+            )
+        }
     }
 }

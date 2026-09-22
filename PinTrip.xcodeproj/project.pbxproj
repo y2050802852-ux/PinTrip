@@ -13,7 +13,6 @@
 		A10004 /* PlaceListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10004 /* PlaceListView.swift */; };
 		A10005 /* PlaceRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10005 /* PlaceRow.swift */; };
 		A10006 /* MapCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10006 /* MapCanvasView.swift */; };
-		A10007 /* DropPinSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10007 /* DropPinSheet.swift */; };
 		A10008 /* UndoBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10008 /* UndoBanner.swift */; };
 		A10009 /* Plan.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10009 /* Plan.swift */; };
 		A10010 /* Place.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10010 /* Place.swift */; };
@@ -25,6 +24,9 @@
 		A10016 /* RightClickCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10020 /* RightClickCapture.swift */; };
 		A10017 /* PlaceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10021 /* PlaceDetailView.swift */; };
 		A10018 /* PlanDestinationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10022 /* PlanDestinationSheet.swift */; };
+		A10021 /* DateRangeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10025 /* DateRangeSheet.swift */; };
+		A10020 /* PreviewCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10024 /* PreviewCard.swift */; };
+		A10019 /* PlacePreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10023 /* PlacePreview.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,7 +37,6 @@
 		B10004 /* PlaceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceListView.swift; sourceTree = "<group>"; };
 		B10005 /* PlaceRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceRow.swift; sourceTree = "<group>"; };
 		B10006 /* MapCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapCanvasView.swift; sourceTree = "<group>"; };
-		B10007 /* DropPinSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropPinSheet.swift; sourceTree = "<group>"; };
 		B10008 /* UndoBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoBanner.swift; sourceTree = "<group>"; };
 		B10009 /* Plan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plan.swift; sourceTree = "<group>"; };
 		B10010 /* Place.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Place.swift; sourceTree = "<group>"; };
@@ -45,6 +46,9 @@
 		B10014 /* UndoController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoController.swift; sourceTree = "<group>"; };
 		B10015 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B10016 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B10023 /* PlacePreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacePreview.swift; sourceTree = "<group>"; };
+		B10024 /* PreviewCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewCard.swift; sourceTree = "<group>"; };
+		B10025 /* DateRangeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateRangeSheet.swift; sourceTree = "<group>"; };
 		B10021 /* PlaceDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDetailView.swift; sourceTree = "<group>"; };
 		B10022 /* PlanDestinationSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanDestinationSheet.swift; sourceTree = "<group>"; };
 		B10020 /* RightClickCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RightClickCapture.swift; sourceTree = "<group>"; };
@@ -90,6 +94,7 @@
 				B10009 /* Plan.swift */,
 				B10010 /* Place.swift */,
 				B10011 /* DeletionSnapshot.swift */,
+				B10023 /* PlacePreview.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -102,11 +107,12 @@
 				B10004 /* PlaceListView.swift */,
 				B10005 /* PlaceRow.swift */,
 				B10006 /* MapCanvasView.swift */,
-				B10007 /* DropPinSheet.swift */,
 				B10008 /* UndoBanner.swift */,
 				B10020 /* RightClickCapture.swift */,
 				B10021 /* PlaceDetailView.swift */,
 				B10022 /* PlanDestinationSheet.swift */,
+				B10024 /* PreviewCard.swift */,
+				B10025 /* DateRangeSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -204,7 +210,6 @@
 				A10004 /* PlaceListView.swift in Sources */,
 				A10005 /* PlaceRow.swift in Sources */,
 				A10006 /* MapCanvasView.swift in Sources */,
-				A10007 /* DropPinSheet.swift in Sources */,
 				A10008 /* UndoBanner.swift in Sources */,
 				A10009 /* Plan.swift in Sources */,
 				A10010 /* Place.swift in Sources */,
@@ -215,6 +220,9 @@
 				A10016 /* RightClickCapture.swift in Sources */,
 				A10017 /* PlaceDetailView.swift in Sources */,
 				A10018 /* PlanDestinationSheet.swift in Sources */,
+				A10019 /* PlacePreview.swift in Sources */,
+				A10020 /* PreviewCard.swift in Sources */,
+				A10021 /* DateRangeSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

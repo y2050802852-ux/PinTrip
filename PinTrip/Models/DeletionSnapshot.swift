@@ -62,6 +62,8 @@ struct PlanDeletion {
     let destinationLatitude: Double?
     let destinationLongitude: Double?
     let searchRadius: Double
+    let startDate: Date?
+    let endDate: Date?
     let places: [PlaceSnapshot]
 
     init(plan: Plan) {
@@ -71,6 +73,8 @@ struct PlanDeletion {
         self.destinationLatitude = plan.destinationLatitude
         self.destinationLongitude = plan.destinationLongitude
         self.searchRadius = plan.searchRadius
+        self.startDate = plan.startDate
+        self.endDate = plan.endDate
         self.places = plan.places.map { PlaceSnapshot(place: $0) }
     }
 
