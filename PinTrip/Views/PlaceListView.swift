@@ -34,8 +34,31 @@ struct PlaceListView: View {
         return focusedDay.map { [$0] } ?? plan.dayNumbers
     }
 
-    private func places(onDay day: Int) -> [Place] {
-        places.filter { $0.day == day }
+    /// Places grouped by day, computed once per body evaluation.
+    ///
+    /// Previously each `places(onDay:)` call re-sorted the whole plan, and the
+    /// body called it twice per day — quadratic work on every re-render, which
+    /// made dragging feel frozen.
+    private var groupedByDay: [Int: [Place]] {
+        guard plan != nil else { return [:] }
+        var result: [Int: [Place]] = [:]
+        for day in visibleDays {
+            result[day] = []
+        }
+        for place in places {
+            result[place.day, default: []].append(place)
+        }
+        for key in result.keys {
+            result[key]?.sort { lhs, rhs in
+                if lhs.sortOrder != rhs.sortOrder { return lhs.sortOrder < rhs.sortOrder }
+                return lhs.createdAt < rhs.createdAt
+            }
+        }
+        return result
+    }
+
+    private func places(onDay day: Int, from groups: [Int: [Place]]) -> [Place] {
+        groups[day] ?? []
     }
 
     var body: some View {
@@ -62,15 +85,28 @@ struct PlaceListView: View {
     @ViewBuilder
     private var content: some View {
         if let plan {
+            let groups = groupedByDay
             List(selection: $selectedPlaceID) {
                 ForEach(visibleDays, id: \.self) { day in
                     Section {
-                        dayBody(plan: plan, day: day)
+                        DayDropArea(
+                            plan: plan,
+                            items: places(onDay: day, from: groups),
+                            selectedPlaceID: $selectedPlaceID,
+                            isTargeted: Binding(
+                                get: { dropTargetDay == day },
+                                set: { if !$0, dropTargetDay == day { dropTargetDay = nil } }
+                            ),
+                            dropTargetIndex: $dropTargetIndex,
+                            handleDrop: { payloads, index in
+                                handleDrop(payloads, day: day, index: index)
+                            }
+                        )
                     } header: {
                         DayHeader(
                             plan: plan,
                             day: day,
-                            count: places(onDay: day).count,
+                            count: places(onDay: day, from: groups).count,
                             isFocused: focusedDay == day
                         ) {
                             focusedDay = (focusedDay == day) ? nil : day
@@ -98,94 +134,7 @@ struct PlaceListView: View {
         }
     }
 
-    // MARK: - Day section body
-
-    @ViewBuilder
-    private func dayBody(plan: Plan, day: Int) -> some View {
-        let items = places(onDay: day)
-
-        if items.isEmpty {
-            emptyDayPlaceholder(day: day)
-        } else {
-            ForEach(Array(items.enumerated()), id: \.element.id) { index, place in
-                VStack(spacing: 0) {
-                    insertIndicator(day: day, index: index)
-                    PlaceRow(plan: plan, place: place)
-                        .tag(place.id as PersistentIdentifier?)
-                        .draggable(PlaceDragPayload(placeID: place.id))
-                        // Dropping onto the middle of a row lands after it;
-                        // the indicator above it handles inserting before.
-                        .dropDestination(for: PlaceDragPayload.self) { payloads, _ in
-                            handleDrop(payloads, day: day, index: index + 1)
-                        } isTargeted: { targeted in
-                            if targeted {
-                                dropTargetDay = day
-                                dropTargetIndex = index + 1
-                            } else if dropTargetDay == day && dropTargetIndex == index + 1 {
-                                dropTargetDay = nil
-                                dropTargetIndex = nil
-                            }
-                        }
-                }
-                .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
-                .modifier(DayHighlight(isTargeted: dropTargetDay == day))
-            }
-            // Trailing slot so a place can be dropped after the last row.
-            insertIndicator(day: day, index: items.count)
-                .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
-        }
-    }
-
-    private func emptyDayPlaceholder(day: Int) -> some View {
-        Text("拖动地点到这里")
-            .font(.caption)
-            .foregroundStyle(.tertiary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 8)
-            .contentShape(Rectangle())
-            .dropDestination(for: PlaceDragPayload.self) { items, _ in
-                handleDrop(items, day: day, index: 0)
-            } isTargeted: { targeted in
-                if targeted {
-                    dropTargetDay = day
-                    dropTargetIndex = 0
-                } else if dropTargetDay == day {
-                    dropTargetDay = nil
-                    dropTargetIndex = nil
-                }
-            }
-            .modifier(DayHighlight(isTargeted: dropTargetDay == day))
-    }
-
-    /// Thin blue line showing where the dragged place will land.
-    ///
-    /// The hit area must always have height: a zero-height view cannot be
-    /// hovered, so it could never become the drop target in the first place.
-    @ViewBuilder
-    private func insertIndicator(day: Int, index: Int) -> some View {
-        let isTargeted = dropTargetDay == day && dropTargetIndex == index
-        ZStack(alignment: .center) {
-            // Always-present hit area; the line itself draws only when targeted.
-            Rectangle()
-                .fill(.clear)
-                .frame(height: 10)
-            Rectangle()
-                .fill(isTargeted ? Color.accentColor : Color.clear)
-                .frame(height: isTargeted ? 2 : 0)
-        }
-        .contentShape(Rectangle())
-        .dropDestination(for: PlaceDragPayload.self) { items, _ in
-            handleDrop(items, day: day, index: index)
-        } isTargeted: { targeted in
-            if targeted {
-                dropTargetDay = day
-                dropTargetIndex = index
-            } else if dropTargetDay == day && dropTargetIndex == index {
-                dropTargetDay = nil
-                dropTargetIndex = nil
-            }
-        }
-    }
+    // MARK: - Drop handling
 
     // MARK: - Drop handling
 
@@ -194,12 +143,14 @@ struct PlaceListView: View {
         guard let place = plan.places.first(where: { $0.id == payload.placeID }) else { return false }
 
         let sourceDay = place.day
-        var target = places(onDay: day)
+        let groups = groupedByDay
+        var target = places(onDay: day, from: groups)
         // Removing the place first keeps the index valid for same-day moves.
         target.removeAll { $0.id == place.id }
 
         var insertAt = index
-        if sourceDay == day, let oldIndex = places(onDay: day).firstIndex(where: { $0.id == place.id }),
+        if sourceDay == day,
+           let oldIndex = places(onDay: day, from: groups).firstIndex(where: { $0.id == place.id }),
            oldIndex < index {
             insertAt -= 1
         }
@@ -214,7 +165,7 @@ struct PlaceListView: View {
         // The day the place left must be renumbered too, otherwise it keeps a
         // gap and later inserts land in the wrong slot.
         if sourceDay != day {
-            let source = places(onDay: sourceDay).sorted { $0.sortOrder < $1.sortOrder }
+            let source = places(onDay: sourceDay, from: groups)
             for (offset, item) in source.enumerated() {
                 item.sortOrder = offset
             }
