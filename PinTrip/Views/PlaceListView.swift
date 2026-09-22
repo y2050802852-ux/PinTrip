@@ -113,8 +113,22 @@ struct PlaceListView: View {
                     PlaceRow(plan: plan, place: place)
                         .tag(place.id as PersistentIdentifier?)
                         .draggable(PlaceDragPayload(placeID: place.id))
+                        // Dropping onto the middle of a row lands after it;
+                        // the indicator above it handles inserting before.
+                        .dropDestination(for: PlaceDragPayload.self) { payloads, _ in
+                            handleDrop(payloads, day: day, index: index + 1)
+                        } isTargeted: { targeted in
+                            if targeted {
+                                dropTargetDay = day
+                                dropTargetIndex = index + 1
+                            } else if dropTargetDay == day && dropTargetIndex == index + 1 {
+                                dropTargetDay = nil
+                                dropTargetIndex = nil
+                            }
+                        }
                 }
                 .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
+                .modifier(DayHighlight(isTargeted: dropTargetDay == day))
             }
             // Trailing slot so a place can be dropped after the last row.
             insertIndicator(day: day, index: items.count)
@@ -132,27 +146,45 @@ struct PlaceListView: View {
             .dropDestination(for: PlaceDragPayload.self) { items, _ in
                 handleDrop(items, day: day, index: 0)
             } isTargeted: { targeted in
-                dropTargetDay = targeted ? day : dropTargetDay
-                dropTargetIndex = targeted ? 0 : dropTargetIndex
+                if targeted {
+                    dropTargetDay = day
+                    dropTargetIndex = 0
+                } else if dropTargetDay == day {
+                    dropTargetDay = nil
+                    dropTargetIndex = nil
+                }
             }
             .modifier(DayHighlight(isTargeted: dropTargetDay == day))
     }
 
     /// Thin blue line showing where the dragged place will land.
+    ///
+    /// The hit area must always have height: a zero-height view cannot be
+    /// hovered, so it could never become the drop target in the first place.
     @ViewBuilder
     private func insertIndicator(day: Int, index: Int) -> some View {
         let isTargeted = dropTargetDay == day && dropTargetIndex == index
-        Rectangle()
-            .fill(isTargeted ? Color.accentColor : Color.clear)
-            .frame(height: isTargeted ? 2 : 0)
-            .dropDestination(for: PlaceDragPayload.self) { items, _ in
-                handleDrop(items, day: day, index: index)
-            } isTargeted: { targeted in
-                if targeted {
-                    dropTargetDay = day
-                    dropTargetIndex = index
-                }
+        ZStack(alignment: .center) {
+            // Always-present hit area; the line itself draws only when targeted.
+            Rectangle()
+                .fill(.clear)
+                .frame(height: 10)
+            Rectangle()
+                .fill(isTargeted ? Color.accentColor : Color.clear)
+                .frame(height: isTargeted ? 2 : 0)
+        }
+        .contentShape(Rectangle())
+        .dropDestination(for: PlaceDragPayload.self) { items, _ in
+            handleDrop(items, day: day, index: index)
+        } isTargeted: { targeted in
+            if targeted {
+                dropTargetDay = day
+                dropTargetIndex = index
+            } else if dropTargetDay == day && dropTargetIndex == index {
+                dropTargetDay = nil
+                dropTargetIndex = nil
             }
+        }
     }
 
     // MARK: - Drop handling
