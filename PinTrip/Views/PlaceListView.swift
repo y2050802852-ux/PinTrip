@@ -7,7 +7,7 @@ struct PlaceListView: View {
     @Binding var selectedPlaceID: PersistentIdentifier?
     let undoController: UndoController
 
-    /// Day whose places are shown exclusively; nil shows the whole trip.
+    /// Day whose places are shown exclusively; nil shows every day.
     @Binding var focusedDay: Int?
 
     /// Set when the user picks a search suggestion or right-clicks the map.
@@ -19,17 +19,23 @@ struct PlaceListView: View {
     @State private var isResolving = false
     @State private var searchError: String?
 
+    /// Day currently hovered by a drag, and the row index it would insert at.
+    @State private var dropTargetDay: Int?
+    @State private var dropTargetIndex: Int?
+
     private var places: [Place] {
         plan?.orderedPlaces ?? []
     }
 
-    private var placesByDay: [(day: Int, places: [Place])] {
+    /// Every day is listed, including empty ones, so places can be dragged
+    /// into a day before any place exists there.
+    private var visibleDays: [Int] {
         guard let plan else { return [] }
-        let days = focusedDay.map { [$0] } ?? plan.dayNumbers
-        return days.compactMap { day in
-            let items = places.filter { $0.day == day }
-            return items.isEmpty ? nil : (day: day, places: items)
-        }
+        return focusedDay.map { [$0] } ?? plan.dayNumbers
+    }
+
+    private func places(onDay day: Int) -> [Place] {
+        places.filter { $0.day == day }
     }
 
     var body: some View {
@@ -56,36 +62,32 @@ struct PlaceListView: View {
     @ViewBuilder
     private var content: some View {
         if let plan {
-            if places.isEmpty {
-                ContentUnavailableView {
-                    Label("还没有地点", systemImage: "mappin.slash")
-                } description: {
-                    Text("用上方搜索框查找地点，或在地图上右键添加")
-                }
-            } else {
-                List(selection: $selectedPlaceID) {
-                    ForEach(placesByDay, id: \.day) { section in
-                        Section {
-                            ForEach(section.places) { place in
-                                PlaceRow(plan: plan, place: place)
-                                    .tag(place.id as PersistentIdentifier?)
-                            }
-                            .onMove { from, to in
-                                reorder(day: section.day, from: from, to: to)
-                            }
-                        } header: {
-                            DayHeader(
-                                plan: plan,
-                                day: section.day,
-                                count: section.places.count,
-                                isFocused: focusedDay == section.day
-                            ) {
-                                focusedDay = (focusedDay == section.day) ? nil : section.day
-                            }
+            List(selection: $selectedPlaceID) {
+                ForEach(visibleDays, id: \.self) { day in
+                    Section {
+                        dayBody(plan: plan, day: day)
+                    } header: {
+                        DayHeader(
+                            plan: plan,
+                            day: day,
+                            count: places(onDay: day).count,
+                            isFocused: focusedDay == day
+                        ) {
+                            focusedDay = (focusedDay == day) ? nil : day
                         }
                     }
                 }
-                .listStyle(.inset)
+            }
+            .listStyle(.inset)
+            .overlay {
+                if places.isEmpty {
+                    ContentUnavailableView {
+                        Label("还没有地点", systemImage: "mappin.slash")
+                    } description: {
+                        Text("用上方搜索框查找地点，或在地图上右键添加")
+                    }
+                    .background(.background)
+                }
             }
         } else {
             ContentUnavailableView {
@@ -95,6 +97,104 @@ struct PlaceListView: View {
             }
         }
     }
+
+    // MARK: - Day section body
+
+    @ViewBuilder
+    private func dayBody(plan: Plan, day: Int) -> some View {
+        let items = places(onDay: day)
+
+        if items.isEmpty {
+            emptyDayPlaceholder(day: day)
+        } else {
+            ForEach(Array(items.enumerated()), id: \.element.id) { index, place in
+                VStack(spacing: 0) {
+                    insertIndicator(day: day, index: index)
+                    PlaceRow(plan: plan, place: place)
+                        .tag(place.id as PersistentIdentifier?)
+                        .draggable(PlaceDragPayload(placeID: place.id))
+                }
+                .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
+            }
+            // Trailing slot so a place can be dropped after the last row.
+            insertIndicator(day: day, index: items.count)
+                .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
+        }
+    }
+
+    private func emptyDayPlaceholder(day: Int) -> some View {
+        Text("拖动地点到这里")
+            .font(.caption)
+            .foregroundStyle(.tertiary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 8)
+            .contentShape(Rectangle())
+            .dropDestination(for: PlaceDragPayload.self) { items, _ in
+                handleDrop(items, day: day, index: 0)
+            } isTargeted: { targeted in
+                dropTargetDay = targeted ? day : dropTargetDay
+                dropTargetIndex = targeted ? 0 : dropTargetIndex
+            }
+            .modifier(DayHighlight(isTargeted: dropTargetDay == day))
+    }
+
+    /// Thin blue line showing where the dragged place will land.
+    @ViewBuilder
+    private func insertIndicator(day: Int, index: Int) -> some View {
+        let isTargeted = dropTargetDay == day && dropTargetIndex == index
+        Rectangle()
+            .fill(isTargeted ? Color.accentColor : Color.clear)
+            .frame(height: isTargeted ? 2 : 0)
+            .dropDestination(for: PlaceDragPayload.self) { items, _ in
+                handleDrop(items, day: day, index: index)
+            } isTargeted: { targeted in
+                if targeted {
+                    dropTargetDay = day
+                    dropTargetIndex = index
+                }
+            }
+    }
+
+    // MARK: - Drop handling
+
+    private func handleDrop(_ payloads: [PlaceDragPayload], day: Int, index: Int) -> Bool {
+        guard let plan, let payload = payloads.first else { return false }
+        guard let place = plan.places.first(where: { $0.id == payload.placeID }) else { return false }
+
+        let sourceDay = place.day
+        var target = places(onDay: day)
+        // Removing the place first keeps the index valid for same-day moves.
+        target.removeAll { $0.id == place.id }
+
+        var insertAt = index
+        if sourceDay == day, let oldIndex = places(onDay: day).firstIndex(where: { $0.id == place.id }),
+           oldIndex < index {
+            insertAt -= 1
+        }
+        insertAt = min(max(insertAt, 0), target.count)
+
+        place.day = plan.clampedDay(day)
+        target.insert(place, at: insertAt)
+
+        for (offset, item) in target.enumerated() {
+            item.sortOrder = offset
+        }
+        // The day the place left must be renumbered too, otherwise it keeps a
+        // gap and later inserts land in the wrong slot.
+        if sourceDay != day {
+            let source = places(onDay: sourceDay).sorted { $0.sortOrder < $1.sortOrder }
+            for (offset, item) in source.enumerated() {
+                item.sortOrder = offset
+            }
+        }
+        try? context.save()
+
+        dropTargetDay = nil
+        dropTargetIndex = nil
+        return true
+    }
+
+    // MARK: - Search
 
     private var searchField: some View {
         VStack(spacing: 6) {
@@ -169,8 +269,7 @@ struct PlaceListView: View {
         searchService.biasCity = plan?.destinationName
     }
 
-    /// Selecting a suggestion only previews it on the map; nothing is saved
-    /// until the user confirms from the preview card.
+    /// Selecting a suggestion only previews it; nothing is saved until confirmed.
     private func previewSuggestion(_ suggestion: PlaceSuggestion) async {
         isResolving = true
         defer { isResolving = false }
@@ -210,19 +309,27 @@ struct PlaceListView: View {
         }
     }
 
-    /// Clears the search field after a preview has been committed elsewhere.
     private func clearAfterCommit() {
         query = ""
         searchService.clear()
     }
+}
 
-    private func reorder(day: Int, from source: IndexSet, to destination: Int) {
-        var ordered = places.filter { $0.day == day }
-        ordered.move(fromOffsets: source, toOffset: destination)
-        for (index, place) in ordered.enumerated() {
-            place.sortOrder = index
-        }
-        try? context.save()
+/// Blue outline shown on the day section that a drag is currently over.
+private struct DayHighlight: ViewModifier {
+    let isTargeted: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .strokeBorder(isTargeted ? Color.accentColor : Color.clear, lineWidth: 2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(isTargeted ? Color.accentColor.opacity(0.08) : Color.clear)
+                    )
+            )
+            .animation(.easeOut(duration: 0.12), value: isTargeted)
     }
 }
 
