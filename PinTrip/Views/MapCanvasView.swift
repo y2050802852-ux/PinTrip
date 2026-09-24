@@ -78,10 +78,12 @@ struct MapCanvasView: View {
                     mapSelection = target
                 }
                 // Deselecting (row toggle or empty-map tap) returns the camera
-                // to the plan overview with an animated zoom-out, mirroring the
-                // focus-in animation used when a place is selected.
+                // to the plan overview with a smooth zoom-out. A spring reads
+                // more naturally than a fixed ease here: the camera travels a
+                // large span (1km focus → city overview) and a spring eases
+                // into the destination instead of stopping abruptly.
                 if newID == nil {
-                    withAnimation(.easeInOut(duration: 0.5)) {
+                    withAnimation(.spring(response: 0.7, dampingFraction: 0.85)) {
                         resetCameraToOverview()
                     }
                 }
@@ -109,9 +111,10 @@ struct MapCanvasView: View {
                 .onAppear {
                     if longPressMonitor == nil {
                         longPressMonitor = LongPressMonitor { windowPoint in
-                            // Window (bottom-left) → view-local (top-left) happens inside
-                            // the capture view; reuse its bounds through the stored ref.
+                            // Long-press only applies over the map: a press-and-hold
+                            // on a list row or any other control must not drop a pin.
                             guard let view = longPressViewRef,
+                                  view.contains(windowPoint: windowPoint),
                                   let coordinate = proxy.convert(view.localPoint(fromWindow: windowPoint), from: .local)
                             else { return }
                             preview = PlacePreview(

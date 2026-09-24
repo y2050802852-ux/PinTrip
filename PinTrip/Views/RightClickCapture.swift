@@ -48,6 +48,12 @@ final class RightClickCaptureView: NSView {
     func localPoint(fromWindow windowPoint: CGPoint) -> CGPoint {
         convert(windowPoint, from: nil)
     }
+
+    /// True when the window point lies within this view (i.e. over the map).
+    func contains(windowPoint: CGPoint) -> Bool {
+        let local = convert(windowPoint, from: nil)
+        return bounds.contains(local)
+    }
 }
 
 /// Detects a press-and-hold (~0.5s, minimal movement) anywhere and reports it,
