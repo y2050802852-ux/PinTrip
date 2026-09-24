@@ -19,6 +19,11 @@ final class UserLocationService: NSObject, CLLocationManagerDelegate {
     /// Human-readable reason when a locate attempt failed.
     var lastError: String?
 
+    /// Live authorization state for the on-screen diagnostic line.
+    /// Mirrored into an @Observable property from delegate callbacks so the
+    /// UI updates when the user answers the system prompt.
+    var authorizationLabel = "未知"
+
     private let manager = CLLocationManager()
     private var pending: CheckedContinuation<CLLocationCoordinate2D, Error>?
     private var awaitingAuthorization = false
@@ -30,6 +35,16 @@ final class UserLocationService: NSObject, CLLocationManagerDelegate {
         manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
         // Reflect an already-denied state from a previous session at init.
         isDenied = manager.authorizationStatus == .denied
+        authorizationLabel = Self.label(for: manager.authorizationStatus)
+    }
+
+    nonisolated private static func label(for status: CLAuthorizationStatus) -> String {
+        switch status {
+        case .notDetermined: return "未授权（等待系统询问）"
+        case .denied: return "已拒绝"
+        case .restricted: return "受限制"
+        default: return "已授权 ✓"
+        }
     }
 
     func locate() async throws -> CLLocationCoordinate2D {
@@ -95,6 +110,7 @@ final class UserLocationService: NSObject, CLLocationManagerDelegate {
         Task { @MainActor in
             let status = manager.authorizationStatus
             self.isDenied = (status == .denied || status == .restricted)
+            self.authorizationLabel = Self.label(for: status)
             guard self.awaitingAuthorization, let c = self.pending else { return }
             self.awaitingAuthorization = false
             switch status {

@@ -129,6 +129,12 @@ struct MapCanvasView: View {
                     .buttonStyle(.bordered)
                     .disabled(locationService.isLocating)
 
+                    // Always-on diagnostic: shows what the app actually sees,
+                    // so authorization churn after reinstalls is visible.
+                    Text("授权状态: \(locationService.authorizationLabel)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+
                     if locationService.isDenied {
                         Text(LocationError.denied.errorDescription ?? "")
                             .font(.caption)
