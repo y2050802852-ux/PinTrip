@@ -30,6 +30,7 @@
 		A10024 /* MapCoordinate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10028 /* MapCoordinate.swift */; };
 		A10025 /* RenameSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10029 /* RenameSheet.swift */; };
 		A10027 /* BackupFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10031 /* BackupFlow.swift */; };
+		A10028 /* UserLocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10032 /* UserLocationService.swift */; };
 		A10026 /* BackupCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10030 /* BackupCodec.swift */; };
 		A10020 /* PreviewCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10024 /* PreviewCard.swift */; };
 		A10019 /* PlacePreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10023 /* PlacePreview.swift */; };
@@ -53,6 +54,7 @@
 		B10015 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B10016 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B10030 /* BackupCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupCodec.swift; sourceTree = "<group>"; };
+		B10032 /* UserLocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserLocationService.swift; sourceTree = "<group>"; };
 		B10031 /* BackupFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupFlow.swift; sourceTree = "<group>"; };
 		B10029 /* RenameSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenameSheet.swift; sourceTree = "<group>"; };
 		B10028 /* MapCoordinate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapCoordinate.swift; sourceTree = "<group>"; };
@@ -141,6 +143,7 @@
 				B10014 /* UndoController.swift */,
 				B10030 /* BackupCodec.swift */,
 				B10031 /* BackupFlow.swift */,
+				B10032 /* UserLocationService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -247,6 +250,7 @@
 				A10025 /* RenameSheet.swift in Sources */,
 				A10026 /* BackupCodec.swift in Sources */,
 				A10027 /* BackupFlow.swift in Sources */,
+				A10028 /* UserLocationService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

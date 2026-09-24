@@ -4,5 +4,7 @@
 <dict>
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>显示您在地图上的当前位置，用于标记旅行地点。</string>
 </dict>
 </plist>

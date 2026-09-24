@@ -21,6 +21,9 @@ struct MapCanvasView: View {
     @Binding var focusRequest: MapCoordinate?
 
     @Environment(\.modelContext) private var context
+    @State private var locationService = UserLocationService()
+    @State private var locationError: String?
+    @State private var userLocationShown: MapCoordinate?
 
     private var places: [Place] {
         guard let plan else { return [] }
@@ -44,6 +47,13 @@ struct MapCanvasView: View {
                     Marker(preview.needsName ? "新位置" : preview.name, coordinate: preview.coordinate)
                         .tint(Color.accentColor.opacity(0.55))
                 }
+
+                // "Locate me" result: shows until the next plan switch.
+                if let userLocationShown {
+                    Marker("我的位置", systemImage: "location.circle.fill", coordinate: userLocationShown.clCoordinate)
+                        .tint(.cyan)
+                }
+                UserLocationMarker()
             }
             .mapStyle(.standard)
             .mapControls {
@@ -91,6 +101,28 @@ struct MapCanvasView: View {
                     .padding(.trailing, 14)
                     .padding(.bottom, 4)
                 }
+
+                // Locate-me: request position, mark it, focus the camera.
+                VStack(alignment: .trailing, spacing: 6) {
+                    Button {
+                        Task { await locateMe() }
+                    } label: {
+                        Label("定位我的位置", systemImage: locationService.isLocating ? "location.ripple" : "location.fill")
+                            .font(.callout)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(locationService.isLocating)
+
+                    if let locationError {
+                        Text(locationError)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                            .frame(maxWidth: 240, alignment: .trailing)
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
+                    }
+                }
+                .padding(.trailing, 14)
+                .padding(.bottom, 4)
             }
         }
         .overlay(alignment: .topLeading) {
@@ -119,5 +151,31 @@ struct MapCanvasView: View {
             )
             focusRequest = nil
         }
+        .onChange(of: plan?.id) { _, _ in
+            userLocationShown = nil
+            locationError = nil
+        }
+    }
+
+    /// Requests the current position once, marks it, and flies the camera.
+    private func locateMe() async {
+        locationError = nil
+        do {
+            let coordinate = try await locationService.locate()
+            let coordinateValue = MapCoordinate(coordinate)
+            userLocationShown = coordinateValue
+            cameraPosition = .camera(
+                MapCamera(centerCoordinate: coordinate, distance: 1_000)
+            )
+        } catch {
+            locationError = error.localizedDescription
+        }
+    }
+}
+
+/// Apple's blue pulsing dot for the user's position on SwiftUI Maps.
+private struct UserLocationMarker: MapContent {
+    var body: some MapContent {
+        UserAnnotation()
     }
 }
