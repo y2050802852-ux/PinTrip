@@ -1,129 +1,163 @@
-# PinTrip
+<div align="center">
 
-macOS 旅游地点标注与规划工具。搜索地点 → 加入计划 → 在地图上查看全部标注 → 按计划一键管理。
+# 📍 PinTrip
 
-## 功能
+**macOS 原生旅游地点标注与行程规划工具**
 
-- **旅游计划**：新建计划时选择起止日期，自动生成 Day 1..N；可随时改日期范围
-- **按天行程**：中间栏按天分区显示地点，**空天也会列出**（显示「拖动地点到这里」），创建后即可把所有天看到
-- **拖动调天**：按住地点行可拖到任意天；天内拖动调顺序，跨天拖动改归属
-  - 拖动时目标天整块高亮描边，行间显示蓝色插入线指示落点
-  - 天内排序与跨天移动已统一为一套拖放（原 `onMove` 已移除，两者共存会抢手势）
-  - 移动后**源天和目标天都会重排 `sortOrder`**，避免留下序号空洞
-- **地点搜索**：`MKLocalSearchCompleter` 边打边联想
-- **预览确认**：选中搜索结果**不直接入库**，地图先聚焦该景点并以半透明标记预览，右上角卡片确认后才添加（可选择加到第几天）
-- **手动落点**：地图右键落点，同样走预览确认流程，手填名称与分类
-- **地点字段**：备注、分类、天数、评分、已去过标记、链接
-- **删除安全**：删计划前确认，删除后 5 秒内可撤销
-- **备份与恢复**：文件菜单 ⌘E 导出全部计划为 JSON，⌘I 导入（追加合并 / 全量替换）
+搜索地点 → 加入计划 → 按天安排 → 地图总览
 
-## 云端备份（导出/导入）
+[![Download](https://img.shields.io/badge/⬇%20下载-v1.0.0%20DMG-blue?style=for-the-badge&logo=apple)](https://github.com/y2050802852-ux/PinTrip/releases/latest)
+![Platform](https://img.shields.io/badge/platform-macOS%2015%2B-black?logo=apple)
+![Swift](https://img.shields.io/badge/Swift-SwiftUI%20%2B%20SwiftData-orange?logo=swift)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Deps](https://img.shields.io/badge/第三方依赖-零-brightgreen)
 
-文件 → **导出所有计划…**（⌘E）：全部计划 + 去重后的地点写入一个 JSON，默认保存到 `~/Documents/Trip Plan/`（可改存 iCloud Drive 等任意网盘目录，文件进网盘即等于上云）。
+*纯原生 · 零 API key · 零第三方依赖 · 数据完全本地*
 
-文件 → **导入计划…**（⌘I）：选备份文件后可选：
+</div>
 
-- **追加合并**——保留本地现有数据；导入的计划以副本加入；**相同 `backupID` 的地点复用不重复**（多对多引用关系按文件重建）
-- **全量替换**——清空本地后按文件完整恢复
+---
 
-多对多关系的正确恢复依赖模型上的稳定 `backupID: UUID`（新记录自动生成，导入时按它匹配）。
+## ✨ 功能一览
 
-> 为什么不是 iCloud 自动同步：SwiftData + CloudKit 需要**付费 Apple Developer 账号**签名并开启 CloudKit 权限；本项目为 ad-hoc 签名自用 App，无法启用。导出 JSON + 网盘是零成本替代。将来若购买了开发者账号，可在 `ModelConfiguration` 加 `cloudKitDatabase: .private` 切换为自动同步，导出/导入代码仍可作为手动备份保留。
+### 🗺️ 地图与标注
+- **联想搜索**：`MKLocalSearchCompleter` 边打边出候选，选中后地图先聚焦预览，确认后才入库（不会误加）
+- **精确落点**：地图上**右键**或**长按 0.5 秒**，在该位置落下预览图钉，手填名称与分类后加入计划
+- **定位我的位置**：一键请求 GPS，地图上显示当前位置并聚焦（按钮下方常驻授权状态，权限问题一眼可见）
+- **分类着色**：景点 🔵 餐饮 🟠 住宿 🟢 交通 ⚪ 其他 🟣，Marker 颜色即分类
+- **双击聚焦**：双击列表中的地点，地图飞到该点（1km 视距）
 
-## 数据模型
+### 📅 按天行程
+- 新建计划时选择**起止日期**，自动生成 Day 1..N，每天独立分区
+- **拖拽改天**：按住地点拖到任意一天，跨天改归属、天内调顺序，落点处显示蓝色插入线
+- 空天也全部列出（「拖动地点到这里」占位），创建计划后即可开始规划
+- 「只看这天」聚焦模式：地图与列表同步只显示当天行程
+- 修改日期范围时，超出新范围的地点自动移到最后一天，**永不丢数据**
 
-```
-Plan   name, startDate, endDate, destination(cityName/lat/lon/radius), createdAt
-Place  name, latitude, longitude, notes, category, day, sortOrder,
-       rating, visited, linkURL, photoPath(预留)
-Plan  <->>  Place   多对多
-```
+### 🧩 地点详情
+- 备注、分类、天数、评分（1-5 星）、已去过 ✓、外部链接
+- **复制地点**：酒店/餐厅要重复去？一键复制成独立副本，紧跟原件、互不影响
+- **重命名**：详情面板直接编辑，或列表右键菜单
 
-**天由日期范围计算得出，不存 Day 实体**：改日期范围时天自动增减，无需维护实体集合。
-未设日期的计划视为「单一无日期清单」（`dayCount == 1`）。
+### ☁️ 备份与恢复（JSON）
+- **⌘E 导出**：全部计划 + 去重地点 → 单个 JSON 文件，默认存到 `~/Documents/Trip Plan/`
+- **⌘I 导入**：两种模式——
+  - **追加合并**：保留现有数据，相同 ID 的地点复用，绝不产生重复
+  - **全量替换**：清空本地后按文件完整恢复（换机/回滚）
+- 文件放进 iCloud Drive / 坚果云 / U 盘即等于上云，格式带 `schemaVersion` 保证向前兼容
 
-日期范围缩短时，原本排在已不存在天数的地点会**移到新的最后一天**，并提示移动了几个，不会丢失。
+### 🛡️ 数据安全
+- 删除计划前确认，删除后 **5 秒内可撤销**（快照级还原，共享地点不会被误删）
+- 多对多模型：一个地点可属于多个计划；删除计划只删「仅属于它的」地点
 
-## 技术选型
+---
 
-| 项目 | 选择 | 原因 |
-|---|---|---|
-| 渲染 | MapKit / SwiftUI `Map` | 零 API key、零构建成本 |
-| 搜索 | `MKLocalSearch` + `MKLocalSearchCompleter` | 与渲染同引擎，坐标系天然一致 |
-| 存储 | SwiftData | `@Relationship` 多对多，样板代码最少 |
-| 部署目标 | macOS 15+ | `MapSelection`（列表↔地图选中同步）需要 15.0 |
-| 沙盒 | 关闭 | 自用 App，无需权限弹窗与公证 |
+## 🚀 快速开始
 
-全链路**零第三方依赖、零 API key、零坐标转换**。
+### 安装（普通用户）
 
-## 已知 MapKit 陷阱：不要设置 `MKLocalSearch.Request.region`
+1. 前往 [**Releases**](https://github.com/y2050802852-ux/PinTrip/releases/latest) 下载 `PinTrip.dmg`
+2. 双击打开，把 **PinTrip.app** 拖入 `Applications`
+3. 首次打开若提示「无法验证开发者」：**右键 App → 打开**（ad-hoc 签名未经公证，正常现象）
 
-在 macOS 26（Xcode 26.6）上，**给 `MKLocalSearch.Request` 设置 `region` 会导致搜索必定失败**：
+> 系统要求：macOS 15 (Sequoia) 或更高，Apple Silicon
 
-```
-Error Domain=MKErrorDomain Code=4   // MKErrorPlacemarkNotFound
-UserInfo={MKErrorGEOError=-8}
-```
-
-实测结论（用 Cocoa run loop 复现，非推测）：
-
-| 请求构造方式 | 结果 |
-|---|---|
-| completion + **不设** region | ✅ 成功 |
-| completion + `region = .world` | ❌ error 4 |
-| completion + `region = 东京 60km`（正确匹配） | ❌ error 4 |
-| completion + `region = 2km` | ❌ error 4 |
-| `naturalLanguageQuery` + **不设** region | ✅ 成功 |
-| `naturalLanguageQuery` + 任意 region | ❌ error 4 |
-
-即**只要设了 region 就失败**，与值是否合理无关，也与是否使用 completion 无关。
-
-因此本项目的做法是：**永不设置 `region`**，改用「在查询文本前拼城市名」来实现目的城市偏向（`PlaceSearchService.biasCity` / `biasedQuery`）。注意 `MKLocalSearchCompleter.region` **不受影响**（实测联想数量完全一致），只有 `MKLocalSearch.Request.region` 有此问题。
-
-## 为什么不用 MapLibre
-
-最初选择 MapLibre + OSM 瓦片，调研后放弃，原因与渲染能力无关，纯粹是分发问题：
-
-- MapLibre Native 的 macOS target 确实存在且在维护（`platform/macos/`，Metal 渲染，CI 绿灯）
-- 但**官方从未发布过 macOS 二进制**。官方 SPM 镜像只含 `ios-arm64`
-- 维护者在 [issue #4088](https://github.com/maplibre/maplibre-native/issues/4088) 明确说明：macOS 开发者必须自行从源码构建，需要 CMake/Bazel、约 10GB 磁盘、1-2 小时
-- `maplibre/swiftui-dsl` 的 SwiftUI 封装是 iOS-only（其 README 自述）
-- Mapbox Maps v11 不支持 macOS
-
-实测代价远超收益，故改用 MapKit。
-
-## 删除语义（多对多）
-
-`Plan` 与 `Place` 是多对多：一个地点可属于多个计划。
-
-删除计划时：
-
-1. 解除该计划与所有地点的关联
-2. **仅当某地点不再被任何计划引用时**才真正删除它
-3. 被其他计划共享的地点原样保留
-
-SwiftData 无内置 undo manager，级联删除不可逆，因此删除前会把计划及其全部地点的**值快照**复制出来（`PlaceSnapshot` / `PlanDeletion`），撤销时按快照重建；仍存活的共享地点走重新链接，不会产生重复。
-
-## 构建
+### 从源码构建
 
 ```bash
-open PinTrip.xcodeproj
-# 或
-xcodebuild -project PinTrip.xcodeproj -scheme PinTrip -configuration Debug build
+git clone https://github.com/y2050802852-ux/PinTrip.git
+cd PinTrip
+open PinTrip.xcodeproj    # Xcode 26+，直接 ⌘R 运行
 ```
 
-## 已知限制
+---
 
-- 路径规划（原需求第 3 项）**尚未实现**，延后到 V2
-- `photoPath` 字段已在模型中预留但 UI 未接入
-- `Place.sortOrder` 在多对多共享下是全局值：同一地点在不同计划中共享同一顺序号
-- 未开启 App Sandbox，故不适合直接分发
+## 🏗️ 技术实现
 
-## 目录结构
+| 层 | 选型 | 说明 |
+|---|---|---|
+| UI | SwiftUI `NavigationSplitView` 三栏 | 计划列表 \| 按天地点列表 \| 地图 |
+| 地图 | MapKit for SwiftUI（`Map` / `Marker` / `MapSelection`） | 与搜索同引擎，坐标系天然一致 |
+| 搜索 | `MKLocalSearch` + `MKLocalSearchCompleter` | 零 key，支持原生联想 |
+| 存储 | SwiftData 多对多（`@Relationship(inverse:)`） | 删除规则手动管理 + 值快照撤销 |
+| 天 | 由 `startDate/endDate` **计算**，不存 Day 实体 | 改日期自动增减，无需迁移 |
+| 精确落点 | AppKit `NSViewRepresentable`（flipped）覆盖层 | 解决 SwiftUI Map 无右键坐标的问题 |
+| 定位 | `CLLocationManager` 事件驱动授权 + 持续更新 | 规避单发请求的瞬时失败 |
+| 备份 | 值快照 + `backupID: UUID` 稳定标识 | 多对多关系可无损往返 |
+
+### 三个值得记录的坑（给后来者）
+
+**1. SwiftData 属性默认值只求值一次**
+
+```swift
+// ❌ 错误：所有实例共享同一个 UUID（每个模型只求值一次！）
+var backupID: UUID = UUID()
+
+// ✅ 正确：在 init() 里逐实例赋值
+init() { self.backupID = UUID() }
+```
+
+这个坑曾导致备份文件把 8 个地点塌缩成 1 个（导出按 ID 去重）。
+
+**2. macOS 26 上给 `MKLocalSearch.Request.region` 赋值必然失败**
+
+```
+Error Domain=MKErrorDomain Code=4 (MKErrorPlacemarkNotFound)
+```
+
+无论 region 值是否合理（甚至 `.world`）、无论是否用 completion 构造，一律 error 4。已实测制成对照表，规避方式是用查询文本前拼城市名。详见源码 `PlaceSearchService.biasCity` 注释。
+
+**3. AppKit / SwiftUI 坐标系翻转**
+
+AppKit NSView 默认左下角原点，SwiftUI `.local` 是左上角——地图右键落点曾整体上下镜像。解法：覆盖视图声明 `isFlipped = true`。
+
+---
+
+## 📁 目录结构
 
 ```
 PinTrip/
-├── Models/          Plan.swift, Place.swift, DeletionSnapshot.swift
-├── Views/           ContentView, PlanSidebar, PlaceListView, MapCanvasView, ...
-└── Services/        PlaceSearchService, PlanStore, UndoController
+├── Models/
+│   ├── Plan.swift               # 计划：日期范围、目的地、多对多关系
+│   ├── Place.swift              # 地点：坐标、分类、天数、评分…
+│   ├── PlacePreview.swift       # 预览中的候选地点（未入库）
+│   ├── PlaceDragPayload.swift   # 拖拽载荷（PersistentIdentifier 直传）
+│   ├── PlaceSelection.swift     # MapSelectable 包装，支持点空白取消选中
+│   ├── MapCoordinate.swift      # CLLocationCoordinate2D 的 Equatable 包装
+│   └── DeletionSnapshot.swift   # 删除快照（撤销重建用）
+├── Services/
+│   ├── PlaceSearchService.swift # 联想 + 解析（含 region bug 规避）
+│   ├── PlanStore.swift          # CRUD / 级联 / 复制 / 撤销还原
+│   ├── BackupCodec.swift        # JSON 编解码 + 合并/替换导入
+│   ├── BackupFlow.swift         # macOS 保存/打开面板（iOS 版在 ios-port 分支）
+│   ├── UserLocationService.swift# 事件驱动授权 + 持续定位
+│   └── UndoController.swift     # 5 秒撤销窗口
+├── Views/                       # 三栏布局、地图画布、预览卡、检查器…
+└── PinTripApp.swift             # 入口 + 启动时 backupID 自愈
 ```
+
+---
+
+## 🧪 质量说明
+
+- 30+ 逻辑测试覆盖：删除级联/共享保留/撤销重建、按天索引计算、拖拽落点索引、备份往返/合并去重、UUID 唯一性自愈
+- 每个功能缺陷都先写失败测试再修（如「8 地点备份塌缩」「跨天拖拽无效」）
+- 全部核心逻辑可在无 UI 的内存 SwiftData 上验证
+
+## 🗺️ Roadmap
+
+- [ ] iOS 通用 App（分支 [`ios-port`](https://github.com/y2050802852-ux/PinTrip/tree/ios-port) 有 WIP：Tab 布局 + 分享表单导出 + 文件导入）
+- [ ] 按天路径连线（直线 polyline）
+- [ ] 真实导航路线（MKDirections / OSRM）
+- [ ] 照片附件（模型已预留 `photoPath` 字段）
+- [ ] iCloud CloudKit 自动同步（需付费开发者账号，导出/导入已可作为手动方案）
+
+## 📄 许可证
+
+MIT
+
+<div align="center">
+
+**SwiftData + MapKit + SwiftUI 构建 · 约 1600 行 Swift · 零第三方依赖**
+
+</div>
