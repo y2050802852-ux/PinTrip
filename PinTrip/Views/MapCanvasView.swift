@@ -113,7 +113,13 @@ struct MapCanvasView: View {
                     .buttonStyle(.bordered)
                     .disabled(locationService.isLocating)
 
-                    if let locationError {
+                    if locationService.isDenied {
+                        Text(LocationError.denied.errorDescription ?? "")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                            .frame(maxWidth: 260, alignment: .trailing)
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
+                    } else if let locationError {
                         Text(locationError)
                             .font(.caption)
                             .foregroundStyle(.red)
