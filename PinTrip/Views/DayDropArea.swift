@@ -107,7 +107,8 @@ struct DayDropArea: View {
             )
             .contentShape(Rectangle())
             .onTapGesture {
-                selectedPlaceID = place.id
+                // Clicking the selected row again toggles the inspector off.
+                selectedPlaceID = (selectedPlaceID == place.id) ? nil : place.id
             }
             .onTapGesture(count: 2) {
                 selectedPlaceID = place.id

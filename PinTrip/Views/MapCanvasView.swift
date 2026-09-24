@@ -6,6 +6,7 @@ struct MapCanvasView: View {
     let plan: Plan?
     @Binding var selectedPlaceID: PersistentIdentifier?
     @Binding var cameraPosition: MapCameraPosition
+    /// Map-level selection (PlaceSelection) so tapping empty map deselects.
 
     /// Restricts the map to a single day when set; nil shows the whole plan.
     @Binding var focusedDay: Int?
@@ -21,6 +22,8 @@ struct MapCanvasView: View {
     @Binding var focusRequest: MapCoordinate?
 
     @Environment(\.modelContext) private var context
+    /// Mirror of selectedPlaceID for Map's MapSelectable-typed selection.
+    @State private var mapSelection: PlaceSelection?
     @State private var locationService = UserLocationService()
     @State private var locationError: String?
     @State private var userLocationShown: MapCoordinate?
@@ -34,11 +37,11 @@ struct MapCanvasView: View {
 
     var body: some View {
         MapReader { proxy in
-            Map(position: $cameraPosition, selection: $selectedPlaceID) {
+            Map(position: $cameraPosition, selection: $mapSelection) {
                 ForEach(places) { place in
                     Marker(place.name, systemImage: place.category.symbolName, coordinate: place.coordinate)
                         .tint(place.category.tint)
-                        .tag(place.id as PersistentIdentifier?)
+                        .tag(PlaceSelection(place.id))
                 }
 
                 // Preview marker: distinct color and lower opacity so it reads
@@ -54,6 +57,19 @@ struct MapCanvasView: View {
                         .tint(.cyan)
                 }
                 UserLocationMarker()
+            }
+            .onChange(of: mapSelection) { _, newValue in
+                // Tapping empty map gives nil → deselect the row, which closes
+                // the inspector; tapping a marker selects its place.
+                if newValue?.placeID != selectedPlaceID {
+                    selectedPlaceID = newValue?.placeID
+                }
+            }
+            .onChange(of: selectedPlaceID) { _, newID in
+                // List row clicks flow back into the map selection.
+                if mapSelection?.placeID != newID {
+                    mapSelection = PlaceSelection(newID)
+                }
             }
             .mapStyle(.standard)
             .mapControls {
