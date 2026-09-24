@@ -32,6 +32,7 @@
 		A10027 /* BackupFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10031 /* BackupFlow.swift */; };
 		A10028 /* UserLocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10032 /* UserLocationService.swift */; };
 		A10029 /* PlaceSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10033 /* PlaceSelection.swift */; };
+		A10030 /* AppAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10034 /* AppAlert.swift */; };
 		A10026 /* BackupCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10030 /* BackupCodec.swift */; };
 		A10020 /* PreviewCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10024 /* PreviewCard.swift */; };
 		A10019 /* PlacePreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10023 /* PlacePreview.swift */; };
@@ -55,6 +56,7 @@
 		B10015 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B10016 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B10030 /* BackupCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupCodec.swift; sourceTree = "<group>"; };
+		B10034 /* AppAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAlert.swift; sourceTree = "<group>"; };
 		B10033 /* PlaceSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceSelection.swift; sourceTree = "<group>"; };
 		B10032 /* UserLocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserLocationService.swift; sourceTree = "<group>"; };
 		B10031 /* BackupFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupFlow.swift; sourceTree = "<group>"; };
@@ -147,6 +149,7 @@
 				B10030 /* BackupCodec.swift */,
 				B10031 /* BackupFlow.swift */,
 				B10032 /* UserLocationService.swift */,
+				B10034 /* AppAlert.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -254,6 +257,7 @@
 				A10026 /* BackupCodec.swift in Sources */,
 				A10027 /* BackupFlow.swift in Sources */,
 				A10028 /* UserLocationService.swift in Sources */,
+				A10030 /* AppAlert.swift in Sources */,
 				A10029 /* PlaceSelection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -312,6 +316,9 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos macosx";
+				SUPPORTS_MACCATALYST = NO;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -366,6 +373,9 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos macosx";
+				SUPPORTS_MACCATALYST = NO;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
