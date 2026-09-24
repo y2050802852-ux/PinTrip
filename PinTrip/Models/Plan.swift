@@ -12,7 +12,9 @@ final class Plan {
     /// Stable identity for backup export/import matching. New records get a
     /// fresh UUID; records restored from a backup reuse the stored one so a
     /// re-import can match them instead of duplicating.
-    var backupID: UUID = UUID()
+    /// Assigned in init() — a property default `= UUID()` is evaluated ONCE
+    /// per model by SwiftData, giving every row the same value.
+    var backupID: UUID
 
     /// Optional destination city the plan is centered on.
     var destinationName: String?
@@ -34,6 +36,7 @@ final class Plan {
 
     init(name: String, destinationName: String? = nil) {
         self.name = name
+        self.backupID = UUID()
         self.createdAt = Date()
         self.destinationName = destinationName
     }

@@ -13,8 +13,33 @@ struct PinTripApp: App {
                 isStoredInMemoryOnly: false
             )
             modelContainer = try ModelContainer(for: schema, configurations: configuration)
+            Self.healDuplicateBackupIDs(container: modelContainer)
         } catch {
             fatalError("Failed to create ModelContainer: \(error.localizedDescription)")
+        }
+    }
+
+    /// One-time repair for rows created while `backupID` used a schema-level
+    /// default: SwiftData evaluated `UUID()` once, so every row stored the
+    /// same value and backups collapsed to a single place. Re-assign a unique
+    /// ID to any row whose backupID is shared by more than one record.
+    @MainActor
+    private static func healDuplicateBackupIDs(container: ModelContainer) {
+        let context = ModelContext(container)
+        do {
+            let places = try context.fetch(FetchDescriptor<Place>())
+            var seen = Set<UUID>()
+            for place in places where !seen.insert(place.backupID).inserted {
+                place.backupID = UUID()
+            }
+            let plans = try context.fetch(FetchDescriptor<Plan>())
+            var seenPlans = Set<UUID>()
+            for plan in plans where !seenPlans.insert(plan.backupID).inserted {
+                plan.backupID = UUID()
+            }
+            try context.save()
+        } catch {
+            // Non-fatal: worst case a later export collapses duplicates again.
         }
     }
 

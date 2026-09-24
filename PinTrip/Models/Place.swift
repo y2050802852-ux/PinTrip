@@ -40,7 +40,11 @@ final class Place {
     var longitude: Double
 
     /// Stable identity for backup export/import matching; see `Plan.backupID`.
-    var backupID: UUID = UUID()
+    /// Assigned in init() — a property default `= UUID()` is evaluated ONCE
+    /// per model by SwiftData, giving every row the same value (verified in
+    /// the live store: two distinct rows shared one backupID, which collapsed
+    /// exports to a single place).
+    var backupID: UUID
 
     var notes: String = ""
     /// Raw value of `PlaceCategory`. Stored as a String so SwiftData needs no custom transformer.
@@ -82,6 +86,7 @@ final class Place {
         category: PlaceCategory = .sight
     ) {
         self.name = name
+        self.backupID = UUID()
         self.latitude = coordinate.latitude
         self.longitude = coordinate.longitude
         self.categoryRaw = category.rawValue

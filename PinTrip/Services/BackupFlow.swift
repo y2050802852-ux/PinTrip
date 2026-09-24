@@ -3,7 +3,18 @@ import SwiftUI
 
 /// File → Export All Plans / Import Plans menu actions.
 enum BackupFlow {
-    /// Opens a save panel defaulting to iCloud Drive and writes the backup.
+    /// Preferred default: ~/Documents/Trip Plan/ (created on demand); falls
+    /// back to iCloud Drive when Documents is unavailable.
+    private static func defaultDirectory() -> URL? {
+        if let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let tripPlan = documents.appendingPathComponent("Trip Plan", isDirectory: true)
+            try? FileManager.default.createDirectory(at: tripPlan, withIntermediateDirectories: true)
+            return tripPlan
+        }
+        return iCloudDriveURL()
+    }
+
+    /// Opens a save panel defaulting to the Trip Plan folder and writes the backup.
     @MainActor
     static func exportAll(plans: [Plan]) async throws -> URL? {
         guard !plans.isEmpty else { return nil }
@@ -14,10 +25,8 @@ enum BackupFlow {
         panel.nameFieldStringValue = suggestedFileName()
         panel.allowedContentTypes = [.json]
         panel.canCreateDirectories = true
-        // iCloud Drive as the default location when available.
-        let iCloudDocs = iCloudDriveURL()
-        if let iCloudDocs {
-            panel.directoryURL = iCloudDocs
+        if let defaultDir = defaultDirectory() {
+            panel.directoryURL = defaultDir
         }
 
         let response = await panel.beginSheetModal(for: NSApp.mainWindow ?? NSApp.windows[0])
@@ -38,8 +47,8 @@ enum BackupFlow {
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
         panel.allowsMultipleSelection = false
-        if let iCloudDocs = iCloudDriveURL() {
-            panel.directoryURL = iCloudDocs
+        if let defaultDir = defaultDirectory() {
+            panel.directoryURL = defaultDir
         }
 
         let response = await panel.beginSheetModal(for: NSApp.mainWindow ?? NSApp.windows[0])
