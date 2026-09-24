@@ -1,3 +1,4 @@
+#if os(macOS)
 import SwiftData
 import SwiftUI
 
@@ -109,3 +110,4 @@ enum BackupFlow {
         }
     }
 }
+#endif

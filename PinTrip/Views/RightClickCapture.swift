@@ -1,3 +1,4 @@
+#if os(macOS)
 import AppKit
 import SwiftUI
 
@@ -83,3 +84,4 @@ final class PointCaptureView: NSView {
         pendingStart = nil
     }
 }
+#endif
