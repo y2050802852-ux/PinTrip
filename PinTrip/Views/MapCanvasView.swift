@@ -25,6 +25,9 @@ struct MapCanvasView: View {
     /// Mirror of selectedPlaceID for Map's MapSelectable-typed selection.
     @State private var mapSelection: PlaceSelection?
     @State private var locationService = UserLocationService()
+    /// Detects press-and-hold without stealing short clicks from the map.
+    @State private var longPressMonitor: LongPressMonitor?
+    @State private var longPressViewRef: RightClickCaptureView?
     @State private var locationError: String?
     @State private var userLocationShown: MapCoordinate?
 
@@ -75,9 +78,12 @@ struct MapCanvasView: View {
                     mapSelection = target
                 }
                 // Deselecting (row toggle or empty-map tap) returns the camera
-                // to the plan overview instead of staying zoomed on the place.
+                // to the plan overview with an animated zoom-out, mirroring the
+                // focus-in animation used when a place is selected.
                 if newID == nil {
-                    resetCameraToOverview()
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        resetCameraToOverview()
+                    }
                 }
             }
             .mapStyle(.standard)
@@ -86,15 +92,39 @@ struct MapCanvasView: View {
                 MapScaleView()
             }
             .overlay {
-                RightClickCapture { point in
-                    guard let coordinate = proxy.convert(point, from: .local) else { return }
-                    preview = PlacePreview(
-                        name: "",
-                        subtitle: "地图落点",
-                        coordinate: coordinate,
-                        source: .manualDrop
-                    )
+                RightClickCapture(
+                    onRightClick: { point in
+                        guard let coordinate = proxy.convert(point, from: .local) else { return }
+                        preview = PlacePreview(
+                            name: "",
+                            subtitle: "地图落点",
+                            coordinate: coordinate,
+                            source: .manualDrop
+                        )
+                    },
+                    onViewResolved: { view in
+                        longPressViewRef = view
+                    }
+                )
+                .onAppear {
+                    if longPressMonitor == nil {
+                        longPressMonitor = LongPressMonitor { windowPoint in
+                            // Window (bottom-left) → view-local (top-left) happens inside
+                            // the capture view; reuse its bounds through the stored ref.
+                            guard let view = longPressViewRef,
+                                  let coordinate = proxy.convert(view.localPoint(fromWindow: windowPoint), from: .local)
+                            else { return }
+                            preview = PlacePreview(
+                                name: "",
+                                subtitle: "地图落点",
+                                coordinate: coordinate,
+                                source: .manualDrop
+                            )
+                        }
+                    }
+                    longPressMonitor?.start()
                 }
+                .onDisappear { longPressMonitor?.stop() }
             }
         }
         .overlay(alignment: .topTrailing) {
