@@ -9,6 +9,11 @@ final class Plan {
     var name: String
     var createdAt: Date
 
+    /// Stable identity for backup export/import matching. New records get a
+    /// fresh UUID; records restored from a backup reuse the stored one so a
+    /// re-import can match them instead of duplicating.
+    var backupID: UUID = UUID()
+
     /// Optional destination city the plan is centered on.
     var destinationName: String?
     var destinationLatitude: Double?

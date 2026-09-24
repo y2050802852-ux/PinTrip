@@ -39,6 +39,9 @@ final class Place {
     var latitude: Double
     var longitude: Double
 
+    /// Stable identity for backup export/import matching; see `Plan.backupID`.
+    var backupID: UUID = UUID()
+
     var notes: String = ""
     /// Raw value of `PlaceCategory`. Stored as a String so SwiftData needs no custom transformer.
     var categoryRaw: String = PlaceCategory.sight.rawValue
