@@ -66,9 +66,18 @@ struct MapCanvasView: View {
                 }
             }
             .onChange(of: selectedPlaceID) { _, newID in
-                // List row clicks flow back into the map selection.
-                if mapSelection?.placeID != newID {
-                    mapSelection = PlaceSelection(newID)
+                // List row clicks flow back into the map selection. The Map
+                // only clears a marker's selected (enlarged) rendering when the
+                // binding is truly nil — PlaceSelection(nil) would keep it
+                // stuck enlarged (observed).
+                let target: PlaceSelection? = newID.map(PlaceSelection.init)
+                if mapSelection != target {
+                    mapSelection = target
+                }
+                // Deselecting (row toggle or empty-map tap) returns the camera
+                // to the plan overview instead of staying zoomed on the place.
+                if newID == nil {
+                    resetCameraToOverview()
                 }
             }
             .mapStyle(.standard)
@@ -182,6 +191,20 @@ struct MapCanvasView: View {
         .onChange(of: plan?.id) { _, _ in
             userLocationShown = nil
             locationError = nil
+        }
+    }
+
+    /// Returns the camera to the plan's overview: destination city if set,
+    /// otherwise automatic framing.
+    private func resetCameraToOverview() {
+        if let coordinate = plan?.destinationCoordinate {
+            cameraPosition = .region(MKCoordinateRegion(
+                center: coordinate,
+                latitudinalMeters: (plan?.searchRadius ?? 25_000) * 2,
+                longitudinalMeters: (plan?.searchRadius ?? 25_000) * 2
+            ))
+        } else {
+            cameraPosition = .automatic
         }
     }
 
