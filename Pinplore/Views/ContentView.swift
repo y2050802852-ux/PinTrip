@@ -69,7 +69,7 @@ struct ContentView: View {
                 }
             }
         }
-        .navigationTitle(selectedPlan?.name ?? "PinTrip")
+        .navigationTitle(selectedPlan?.name ?? "Pinplore")
         .onChange(of: selectedPlanID) { _, _ in
             selectedPlaceID = nil
             preview = nil

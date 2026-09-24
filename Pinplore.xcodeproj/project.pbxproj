@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A10001 /* PinTripApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10001 /* PinTripApp.swift */; };
+		A10001 /* PinploreApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10001 /* PinploreApp.swift */; };
 		A10002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10002 /* ContentView.swift */; };
 		A10003 /* PlanSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10003 /* PlanSidebar.swift */; };
 		A10004 /* PlaceListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10004 /* PlaceListView.swift */; };
@@ -39,8 +39,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		B10000 /* PinTrip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PinTrip.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		B10001 /* PinTripApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinTripApp.swift; sourceTree = "<group>"; };
+		B10000 /* Pinplore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pinplore.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10001 /* PinploreApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinploreApp.swift; sourceTree = "<group>"; };
 		B10002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B10003 /* PlanSidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanSidebar.swift; sourceTree = "<group>"; };
 		B10004 /* PlaceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceListView.swift; sourceTree = "<group>"; };
@@ -95,7 +95,7 @@
 		D10001 /* PinTrip */ = {
 			isa = PBXGroup;
 			children = (
-				B10001 /* PinTripApp.swift */,
+				B10001 /* PinploreApp.swift */,
 				B10016 /* Info.plist */,
 				B10017 /* PinTrip.entitlements */,
 				B10015 /* Assets.xcassets */,
@@ -103,7 +103,7 @@
 				D10003 /* Views */,
 				D10004 /* Services */,
 			);
-			path = PinTrip;
+			path = Pinplore;
 			sourceTree = "<group>";
 		};
 		D10002 /* Models */ = {
@@ -157,7 +157,7 @@
 		D10006 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				B10000 /* PinTrip.app */,
+				B10000 /* Pinplore.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -177,9 +177,9 @@
 			);
 			dependencies = (
 			);
-			name = PinTrip;
-			productName = PinTrip;
-			productReference = B10000 /* PinTrip.app */;
+			name = Pinplore;
+			productName = Pinplore;
+			productReference = B10000 /* Pinplore.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -231,7 +231,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A10001 /* PinTripApp.swift in Sources */,
+				A10001 /* PinploreApp.swift in Sources */,
 				A10002 /* ContentView.swift in Sources */,
 				A10003 /* PlanSidebar.swift in Sources */,
 				A10004 /* PlaceListView.swift in Sources */,
@@ -388,21 +388,21 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = PinTrip/PinTrip.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Pinplore/Pinplore.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PinTrip/Info.plist;
+				INFOPLIST_FILE = Pinplore/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourname.PinTrip;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourname.Pinplore;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -414,21 +414,21 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = PinTrip/PinTrip.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Pinplore/Pinplore.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PinTrip/Info.plist;
+				INFOPLIST_FILE = Pinplore/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourname.PinTrip;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourname.Pinplore;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

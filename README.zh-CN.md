@@ -1,14 +1,14 @@
 <div align="center">
 
-<img src="assets/app-icon.png" width="120" height="120" alt="PinTrip 图标"/>
+<img src="assets/app-icon.png" width="120" height="120" alt="Pinplore 图标"/>
 
-# 📍 PinTrip
+# 📍 Pinplore
 
 **macOS 原生旅游地点标注与按天行程规划工具**
 
 搜索地点 → 加入计划 → 按天安排 → 一张地图总览整个行程
 
-[![Download](https://img.shields.io/badge/⬇_下载-v1.0.0_DMG-blue?style=for-the-badge&logo=apple)](https://github.com/y2050802852-ux/PinTrip/releases/latest)
+[![Download](https://img.shields.io/badge/⬇_下载-v1.0.0_DMG-blue?style=for-the-badge&logo=apple)](https://github.com/y2050802852-ux/Pinplore/releases/latest)
 ![Platform](https://img.shields.io/badge/platform-macOS_15+-black?logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-SwiftUI_+_SwiftData-orange?logo=swift)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -25,7 +25,7 @@
 ## 📸 截图
 
 <div align="center">
-<img src="assets/screenshot-main.png" width="900" alt="PinTrip 主界面"/>
+<img src="assets/screenshot-main.png" width="900" alt="Pinplore 主界面"/>
 <p><sub>南京之旅：按天分区的行程列表（分类、评分、已去过标记），全部地点同步显示在右侧地图上。深色模式。</sub></p>
 </div>
 
@@ -71,8 +71,8 @@
 
 ### 安装（普通用户）
 
-1. 前往 [**Releases**](https://github.com/y2050802852-ux/PinTrip/releases/latest) 下载 `PinTrip.dmg`
-2. 双击打开，把 **PinTrip.app** 拖入 `Applications`
+1. 前往 [**Releases**](https://github.com/y2050802852-ux/Pinplore/releases/latest) 下载 `Pinplore.dmg`
+2. 双击打开，把 **Pinplore.app** 拖入 `Applications`
 3. 首次打开若提示「无法验证开发者」：**右键 App → 打开**（ad-hoc 签名未经公证，正常现象）
 
 > 系统要求：macOS 15 (Sequoia) 或更高，Apple Silicon
@@ -80,9 +80,9 @@
 ### 从源码构建
 
 ```bash
-git clone https://github.com/y2050802852-ux/PinTrip.git
-cd PinTrip
-open PinTrip.xcodeproj    # Xcode 26+，直接 ⌘R 运行
+git clone https://github.com/y2050802852-ux/Pinplore.git
+cd Pinplore
+open Pinplore.xcodeproj    # Xcode 26+，直接 ⌘R 运行
 ```
 
 ---
@@ -131,7 +131,7 @@ AppKit `NSView` 默认从**左下角**算坐标，SwiftUI `.local` 从**左上�
 ## 📁 目录结构
 
 ```
-PinTrip/
+Pinplore/
 ├── Models/
 │   ├── Plan.swift               # 计划：日期范围、目的地、多对多关系
 │   ├── Place.swift              # 地点：坐标、分类、天数、评分…
@@ -148,7 +148,7 @@ PinTrip/
 │   ├── UserLocationService.swift# 事件驱动授权 + 持续定位
 │   └── UndoController.swift     # 5 秒撤销窗口
 ├── Views/                       # 三栏布局、地图画布、预览卡、检查器…
-└── PinTripApp.swift             # 入口 + 启动时 backupID 自愈
+└── PinploreApp.swift             # 入口 + 启动时 backupID 自愈
 ```
 
 ---
@@ -161,7 +161,7 @@ PinTrip/
 
 ## 🗺️ Roadmap
 
-- [ ] iOS 通用 App（分支 [`ios-port`](https://github.com/y2050802852-ux/PinTrip/tree/ios-port) 有 WIP：Tab 布局 + 分享表单导出 + 文件导入）
+- [ ] iOS 通用 App（分支 [`ios-port`](https://github.com/y2050802852-ux/Pinplore/tree/ios-port) 有 WIP：Tab 布局 + 分享表单导出 + 文件导入）
 - [ ] 按天路径连线（直线 polyline）
 - [ ] 真实导航路线（MKDirections / OSRM）
 - [ ] 照片附件（模型已预留 `photoPath` 字段）

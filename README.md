@@ -1,14 +1,14 @@
 <div align="center">
 
-<img src="assets/app-icon.png" width="120" height="120" alt="PinTrip icon"/>
+<img src="assets/app-icon.png" width="120" height="120" alt="Pinplore icon"/>
 
-# 📍 PinTrip
+# 📍 Pinplore
 
 **Native macOS travel pinning & day-by-day trip planning**
 
 Search a place → pin it → plan it day by day → see the whole trip on one map
 
-[![Download](https://img.shields.io/badge/⬇_Download-v1.0.0_DMG-blue?style=for-the-badge&logo=apple)](https://github.com/y2050802852-ux/PinTrip/releases/latest)
+[![Download](https://img.shields.io/badge/⬇_Download-v1.0.0_DMG-blue?style=for-the-badge&logo=apple)](https://github.com/y2050802852-ux/Pinplore/releases/latest)
 ![Platform](https://img.shields.io/badge/platform-macOS_15+-black?logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-SwiftUI_+_SwiftData-orange?logo=swift)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -25,7 +25,7 @@ Search a place → pin it → plan it day by day → see the whole trip on one m
 ## 📸 Screenshots
 
 <div align="center">
-<img src="assets/screenshot-main.png" width="900" alt="PinTrip main window"/>
+<img src="assets/screenshot-main.png" width="900" alt="Pinplore main window"/>
 <p><sub>Nanjing trip: day-sectioned itinerary with categories, ratings and visited checkmarks — all pins live on the map. Dark mode.</sub></p>
 </div>
 
@@ -70,8 +70,8 @@ Search a place → pin it → plan it day by day → see the whole trip on one m
 
 ### Install (end users)
 
-1. Grab `PinTrip.dmg` from [**Releases**](https://github.com/y2050802852-ux/PinTrip/releases/latest)
-2. Open it and drag **PinTrip.app** into `Applications`
+1. Grab `Pinplore.dmg` from [**Releases**](https://github.com/y2050802852-ux/Pinplore/releases/latest)
+2. Open it and drag **Pinplore.app** into `Applications`
 3. First launch showing "unidentified developer"? **Right-click the app → Open** (ad-hoc signing is not notarized — expected)
 
 > Requires macOS 15 (Sequoia) or later, Apple Silicon
@@ -79,9 +79,9 @@ Search a place → pin it → plan it day by day → see the whole trip on one m
 ### Build from source
 
 ```bash
-git clone https://github.com/y2050802852-ux/PinTrip.git
-cd PinTrip
-open PinTrip.xcodeproj    # Xcode 26+, just ⌘R
+git clone https://github.com/y2050802852-ux/Pinplore.git
+cd Pinplore
+open Pinplore.xcodeproj    # Xcode 26+, just ⌘R
 ```
 
 ---
@@ -130,7 +130,7 @@ AppKit `NSView` measures from the bottom-left; SwiftUI `.local` measures from th
 ## 📁 Project Layout
 
 ```
-PinTrip/
+Pinplore/
 ├── Models/
 │   ├── Plan.swift               # plan: date range, destination, many-to-many
 │   ├── Place.swift              # place: coordinate, category, day, rating…
@@ -147,7 +147,7 @@ PinTrip/
 │   ├── UserLocationService.swift# event-driven auth + continuous location
 │   └── UndoController.swift     # 5-second undo window
 ├── Views/                       # three-column shell, map canvas, preview card, inspector…
-└── PinTripApp.swift             # entry + launch-time backupID self-heal
+└── PinploreApp.swift             # entry + launch-time backupID self-heal
 ```
 
 ---
@@ -160,7 +160,7 @@ PinTrip/
 
 ## 🗺️ Roadmap
 
-- [ ] Universal iOS app (WIP on branch [`ios-port`](https://github.com/y2050802852-ux/PinTrip/tree/ios-port): Tab layout, share-sheet export, file-importer)
+- [ ] Universal iOS app (WIP on branch [`ios-port`](https://github.com/y2050802852-ux/Pinplore/tree/ios-port): Tab layout, share-sheet export, file-importer)
 - [ ] Per-day route lines (straight polyline)
 - [ ] Real navigation routes (MKDirections / OSRM)
 - [ ] Photo attachments (`photoPath` already reserved in the schema)

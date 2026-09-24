@@ -159,7 +159,7 @@ enum LocationError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .denied:
-            return "定位权限未开启。请在 系统设置 → 隐私与安全性 → 定位服务 中找到 PinTrip 并选择「允许」。"
+            return "定位权限未开启。请在 系统设置 → 隐私与安全性 → 定位服务 中找到 Pinplore 并选择「允许」。"
         case .inProgress:
             return "正在处理上一次定位请求，请稍候。"
         case .timeout:

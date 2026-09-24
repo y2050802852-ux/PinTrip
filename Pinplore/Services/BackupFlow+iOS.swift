@@ -13,7 +13,7 @@ enum BackupFlow {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("PinTrip备份-\(formatter.string(from: Date())).json")
+            .appendingPathComponent("Pinplore备份-\(formatter.string(from: Date())).json")
 
         let data = try BackupCodec.export(plans: plans)
         try data.write(to: url, options: [.atomic])

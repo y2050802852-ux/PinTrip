@@ -62,7 +62,7 @@ struct IPhoneRootView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
-                .navigationTitle(selectedPlan?.name ?? "PinTrip")
+                .navigationTitle(selectedPlan?.name ?? "Pinplore")
             }
             .tabItem { Label("地图", systemImage: "map") }
         }

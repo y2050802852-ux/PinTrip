@@ -43,7 +43,7 @@ enum BackupFlow {
     static func importPlans(context: ModelContext) async throws -> BackupCodec.Result? {
         let panel = NSOpenPanel()
         panel.title = "导入旅游计划"
-        panel.message = "选择之前导出的 PinTrip 备份 JSON 文件"
+        panel.message = "选择之前导出的 Pinplore 备份 JSON 文件"
         panel.allowedContentTypes = [.json]
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
@@ -75,7 +75,7 @@ enum BackupFlow {
     private static func suggestedFileName() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        return "PinTrip备份-\(formatter.string(from: Date())).json"
+        return "Pinplore备份-\(formatter.string(from: Date())).json"
     }
 
     /// Merge/replace confirmation with a summary of what the file contains.

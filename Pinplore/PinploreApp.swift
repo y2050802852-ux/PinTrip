@@ -2,7 +2,7 @@ import SwiftData
 import SwiftUI
 
 @main
-struct PinTripApp: App {
+struct PinploreApp: App {
     @State private var modelContainer: ModelContainer
 
     init() {
